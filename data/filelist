@@ -1,0 +1,8 @@
+main2003JUL26.R	     # The aftershock data
+res2003JUL26.R       # The residual point process data
+Brastings.R          # The occurrence times data of 627 brastings
+PoissonData.R        # Poisson data
+PProcess.R           # Point process data
+SelfExcit.R          # Self-exciting point process data
+
+filelist

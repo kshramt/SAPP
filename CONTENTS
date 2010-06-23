@@ -1,0 +1,86 @@
+Entry: etarpp
+Aliases: etarpp
+Keywords: spatial
+Description: Residual Point Process of The ETAS Model
+URL: ../../../library/SAPP/html/etarpp.html
+
+Entry: etarpp2
+Aliases: etarpp2
+Keywords: spatial
+Description: Residual Point Process of The ETAS Model
+URL: ../../../library/SAPP/html/etarpp.html
+
+Entry: etasap
+Aliases: etasap
+Keywords: spatial
+Description: Maximum Likelihood Estimates of The ETAS Model
+URL: ../../../library/SAPP/html/etasap.html
+
+Entry: etasim1
+Aliases: etasim
+Keywords: spatial
+Description: Simulation of earthquake dataset based on the ETAS Model
+URL: ../../../library/SAPP/html/etasim.html
+
+Entry: etasim2
+Aliases: etasim2
+Keywords: spatial
+Description: Simulation of earthquake dataset based on the ETAS Model
+URL: ../../../library/SAPP/html/etasim.html
+
+Entry: eptren
+Aliases: eptren, print.eptren
+Keywords: spatial
+Description: Maximum Likelihood Estimates of Intensity Rates 
+URL: ../../../library/SAPP/html/eptren.html
+
+Entry: linlin
+Aliases: linlin, print.linlin
+Keywords: spatial
+Description: Maximum Likelihood Estimates of Linear Intensity Models 
+URL: ../../../library/SAPP/html/linlin.html
+
+Entry: linsim
+Aliases: linsim
+Keywords: spatial
+Description: Simulation of A Self-exciting Point Process
+URL: ../../../library/SAPP/html/linsim.html
+
+Entry: momori
+Aliases: momori
+Keywords: spatial
+Description:  Maximum Likelihood Estimates of Parameters in The Omori-Utsu Formula
+URL: ../../../library/SAPP/html/momori.html
+
+Entry: pgraph
+Aliases: pgraph
+Keywords: spatial
+Description: Graphical Outputs for The Point Process Data Set
+URL: ../../../library/SAPP/html/pgraph.html
+
+Entry: ptspec
+Aliases: ptspec, print.ptspec
+Keywords: spatial
+Description: The Periodogram of Point Process Data with The Significant Band
+URL: ../../../library/SAPP/html/ptspec.html
+
+Entry: respoi
+Aliases: respoi
+Keywords: spatial
+Description: Residual of Modified Omori Poisson Process
+URL: ../../../library/SAPP/html/respoi.html
+
+Entry: respoi2
+Aliases: respoi2
+Keywords: spatial
+Description: Residual of Modified Omori Poisson Process
+URL: ../../../library/SAPP/html/respoi.html
+
+Entry: simbvh
+Aliases: simbvh
+Keywords: spatial
+Description: Simulation of Bi-variate Hawkes' Mutually Exciting Point Process
+URL: ../../../library/SAPP/html/simbvh.html
+
+
+

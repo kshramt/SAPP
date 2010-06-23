@@ -1,0 +1,7 @@
+useDynLib(SAPP)
+
+export(etarpp, etarpp2, etasap, etasim1, etasim2, eptren, linlin, linsim, momori, pgraph, ptspec, respoi, respoi2, simbvh)
+
+S3method(print, eptren)
+S3method(print, linlin)
+S3method(print, ptspec)
