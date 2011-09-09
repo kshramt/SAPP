@@ -37,6 +37,7 @@ cc      dimension xx(9000),x(100),aic(20),xa(100,20)
 cc      dimension amg(9000)
 cc      external funct1,funct2
       dimension xx(nn),x(nmax),aic(nb),xa(nmax,nb)
+      dimension amg(nn)
       dimension rx(nmax,nfunct),sx(ni+1,nmax,nfunct)
       dimension xm(5*nmax,nb),xval(np),fval(np)
 c

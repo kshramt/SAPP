@@ -479,6 +479,7 @@ linsim <- function( data,interval,c,d,ax,ay,at,ptmax )
   yy <- c(data,t)
 # ptmax                  # ptxmax: an upper bound of trend polynomial
   kmax <- max(kxx,kxy,kxz)
+  kmax <- max(kmax,3)
 
   xx <- rep(0,2*mm)
   i1 <- 0
@@ -554,6 +555,9 @@ linlin <- function( external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=N
   }
   n <- length(x)
 
+  kmax <- max(kkx,kky)+1
+  kmax <- max(kmax,3)
+
 # opt                  # =0 : minimize the likelihood with fixed exponential coefficient c
                        # =1 :  not fixed d
   tmp.file <- paste(tmp.file, " ")
@@ -579,6 +583,7 @@ linlin <- function( external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=N
 	as.double(yy),
 	as.integer(kkx),
 	as.integer(kky),
+	as.integer(kmax),
 	as.integer(kkc),
 	as.integer(kkt),
 	x1 = as.double(x1),
@@ -735,6 +740,7 @@ simbvh <- function( interval,axx=NULL,axy=NULL,axz=NULL,ayx=NULL,ayy=NULL,ayz=NU
 # ptxmax                 # upper bounds of trend polynomials corresponding to xz
 # ptymax                 # upper bounds of trend polynomials corresponding to yz
   kmax <- max(kxx,kxy,kyx,kyy)
+  kmax <- max(kmax,3)
 
   nnmax <- 10000
   mmmax <- 10000

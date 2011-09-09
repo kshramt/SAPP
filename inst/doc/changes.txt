@@ -1,0 +1,19 @@
+
+             *******************************
+
+                Changes in R Package SAPP
+
+             *******************************
+
+
+  SAPP_1.0.1
+ ============
+ * Delete an extra line with the unterminated string at the end of the file SAPP/data/res2003JUL26.R.
+
+  (Reported by William Dunlap and Duncan Murdoch)
+
+ * Fixed a bug in eptren(). 
+   In subroutine eptrenf, declare the dimension of array "amg".
+
+ * Add the argument "kmax" to the subroutines linlinf, dav, linear, davidn, funct (linlinf.f) and comfac (comsub.f).
+   In those subroutines, declare the dimension of array "lf" as the dynamic array lf(kmax,kmax).

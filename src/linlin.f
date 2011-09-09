@@ -1,6 +1,6 @@
 cc     program linlin
-      subroutine linlinf(n,x,iopt,t,nn,mm,xx,yy,kkx,kky,kkc,kkt,x1,x2,
-     & aic,f,prb,r1,rwx,rwy,phs,tmp)
+      subroutine linlinf(n,x,iopt,t,nn,mm,xx,yy,kkx,kky,kmax,kkc,kkt,
+     & x1,x2,aic,f,prb,r1,rwx,rwy,phs,tmp)
 c
       include 'sapp.h'
 c
@@ -55,7 +55,8 @@ c
 cc      dimension x(50)
       dimension x(n), x1(n), x2(n)
       dimension xx(nn),yy(nn)
-      dimension lf(51,51)
+cc      dimension lf(51,51)
+      dimension lf(kmax,kmax)
 c
       integer*1  tmp(1)
       character cname*80
@@ -84,7 +85,7 @@ c
 c
 cc      call input(n,x)
 cc      call comfac
-      call comfac(lf)
+      call comfac(kmax,lf)
 cc      call cycle
       prd=365.25d0
       call cycle(xx,nn,prd,prb,r1,rwx,rwy,phs)
@@ -92,14 +93,16 @@ cc      call dav(n,x)
       do 10 i=1,n
       x2(i)=x(i)
    10 continue
-      call dav(n,x1,xx,yy,nn,kkx,kky,kkc,kkt,t,mm,iopt,lf,x2,aic,f,xm,
-     & lu,ifg)
+cc      call dav(n,x1,xx,yy,nn,kkx,kky,kkc,kkt,t,mm,iopt,lf,x2,aic,f,xm,
+cc     & lu,ifg)
+      call dav(n,x1,xx,yy,nn,kkx,kky,kkc,kkt,t,mm,iopt,kmax,lf,x2,aic,
+     & f,xm,lu,ifg)
       if (ifg.eq.1) close(lu)
 cc      stop
       return
       end
 cc      subroutine dav(n,x)
-      subroutine dav(n,x1,xx,yy,nn,kkx,kky,kkc,kkt,t,mm,iopt,lf,
+      subroutine dav(n,x1,xx,yy,nn,kkx,kky,kkc,kkt,t,mm,iopt,kmax,lf,
      & x,aic,f,xm,lu,ifg)
       implicit real * 8 (a-h,o-z)
 cc      external funct
@@ -110,6 +113,7 @@ cc      common /ct/kkc,kkt
 cc      dimension x(50),r(31,31)
       dimension x(n),x1(n),x2(n)
       dimension xx(nn),yy(nn)
+      dimension lf(kmax,kmax)
       if(n.eq.1) go to 100
       x(1)=sqrt(x(1))
       x(2)=sqrt(x(2))
@@ -132,7 +136,7 @@ cc      write(6,1020) n,(x(i),i=1,n)
       do 30 ii=1,5
 c----------------------------------
 cc      call davidn(x,n,0,funct)
-      call davidn( x,n,0,xx,yy,nn,kkx,kky,kkc,kkt,mm,iopt,lf,
+      call davidn( x,n,0,xx,yy,nn,kkx,kky,kkc,kkt,mm,iopt,kmax,lf,
      & t,f,xm,lu,ifg )
 c----------------------------------
    30 continue
@@ -188,7 +192,7 @@ cc      write(6,1001) aic
       end
 cc      subroutine  linear( x,h,ram,ee,k,ig,funct )
       subroutine  linear( x,h,ram,f,ee,k,ig,xx,yy,t,nn,mm,iopt,ff,kkx,
-     & kky,kkc,kkt,lf,lu,jfg )
+     & kky,kkc,kkt,kmax,lf,lu,jfg )
 c
 c     this subroutine performs the linear search along the direction
 c     specified by the vector h
@@ -218,7 +222,8 @@ cc      external funct
       dimension  x(k) , h(k) , x1(k)
       dimension  g(k)
       dimension  xx(nn),yy(nn)
-      dimension  lf(51,51)
+cc      dimension  lf(51,51)
+      dimension  lf(kmax,kmax)
 c
       isw = 1
       ipr = 7
@@ -237,7 +242,7 @@ c
    20 x1(i) = x(i) + ram2*h(i)
 cc      call  funct( k,x1,e2,g,ig )
       call funct(k,x1,e2,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
-     & kkc,kkt,lf)
+     & kkc,kkt,kmax,lf)
 cc      if(ipr.ge.7)  write(6,2)  ram2,e2
       if( jfg.eq.1 )  write(lu,2) ram2,e2
 c
@@ -248,7 +253,7 @@ c
    40 x1(i) = x(i) + ram3*h(i)
 cc      call  funct( k,x1,e3,g,ig )
       call funct(k,x1,e3,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
-     & kkc,kkt,lf)
+     & kkc,kkt,kmax,lf)
       if( ig.eq.1 )  go to  500
 cc      if( ipr.ge.7 )  write(6,3)  ram3,e3
       if( jfg.eq.1 )  write(lu,3)  ram3,e3
@@ -267,7 +272,7 @@ c
    60 x1(i) = x(i) + ram2*h(i)
 cc      call  funct( k,x1,e2,g,ig )
       call funct(k,x1,e2,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
-     & kkc,kkt,lf)
+     & kkc,kkt,kmax,lf)
 cc      if(ipr.ge.7)  write(6,4)  ram2,e2
       if( jfg.eq.1 )  write(lu,4)  ram2,e2
       if( e2.gt.e1 )  go to 50
@@ -280,7 +285,7 @@ c
    90 x1(i) = x(i) + ram*h(i)
 cc      call  funct( k,x1,ee,g,ig )
       call funct(k,x1,ee,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
-     & kkc,kkt,lf)
+     & kkc,kkt,kmax,lf)
 cc      if(ipr.ge.7)  write(6,5)  ram,ee
       if(jfg.eq.1)  write(lu,5)  ram,ee
 c
@@ -325,7 +330,7 @@ c
   140 x1(i) = x(i) + ram*h(i)
 cc      call  funct( k,x1,ee,g,ig )
       call funct(k,x1,ee,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
-     & kkc,kkt,lf)
+     & kkc,kkt,kmax,lf)
 cc      if( ipr.ge.7 )  write(6,6)  ram,ee
       if( jfg.eq.1 )  write(lu,6)  ram,ee
 cc      assign 200 to sub
@@ -376,7 +381,7 @@ c
   520 x1(i) = x(i) + ram*h(i)
 cc      call  funct( k,x1,e3,g,ig )
       call funct(k,x1,e3,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
-     & kkc,kkt,lf)
+     & kkc,kkt,kmax,lf)
 cc      if( ipr.ge.7 )  write(6,7)  ram,e3
       if( jfg.eq.1 )  write(lu,7)  ram3,e3
       if( ig.eq.1 )  go to 540
@@ -403,8 +408,8 @@ c ------------------------------------------------------------
     7 format( 1h ,'lambda =',d18.10, 10x,'e7 =',d25.17 )
       e n d
 cc      subroutine  davidn( x,n,ihes,funct )
-      subroutine  davidn( x,n,ihes,xx,yy,nn,kkx,kky,kkc,kkt,mm,iopt,lf,
-     & t,f,xm,lu,ifg )
+      subroutine  davidn( x,n,ihes,xx,yy,nn,kkx,kky,kkc,kkt,mm,iopt,
+     & kmax,lf,t,f,xm,lu,ifg )
 c
 c     minimization by davidon-fletcher-powell procedure
 c     this subroutine is copied from timsac 78.
@@ -431,6 +436,7 @@ cc      dimension  h(50,50) , wrk(50) , s(50)
       dimension  h(n,n) , wrk(n) , s(n)
       dimension  xx(nn),yy(nn)
 cc      dimension  r(31,31)
+      dimension  lf(kmax,kmax)
       common     / ccc /  isw,ipr
 cc      common     / ddd /  r , f , aic , sd
 cc      external funct
@@ -451,7 +457,7 @@ cc      isw = 0
 c
 cc      call  funct( n,x,xm,g,ig )
       call funct(n,x,xm,g,ig,xx,yy,t,nn,mm,iopt,f,kkx,kky,
-     & kkc,kkt,lf)
+     & kkc,kkt,kmax,lf)
 c
 cc      write( 6,340 )     xm
       if( ifg.eq.1 )  write( lu,340 )     xm
@@ -536,7 +542,7 @@ c          linear  search
 c
 cc      call  linear( x,s,ramda,ed,n,ig,funct )
       call  linear( x,s,ramda,f,ed,n,ig,xx,yy,t,nn,mm,iopt,f,kkx,
-     & kky,kkc,kkt,lf,lu,ifg )
+     & kky,kkc,kkt,kmax,lf,lu,ifg )
 c
 cc      write( 6,330 )     ramda , f
       if( ifg.eq.1 )  write( lu,330 )     ramda , f
@@ -552,7 +558,7 @@ cc      isw = 0
 c
 cc      call  funct( n,x,xm,g,ig )
       call funct(n,x,xm,g,ig,xx,yy,t,nn,mm,iopt,f,kkx,kky,
-     & kkc,kkt,lf)
+     & kkc,kkt,kmax,lf)
 c
       s2 = 0.d0
       do  220     i=1,n
@@ -582,7 +588,7 @@ cc      write( 6,610 )     (g(i),i=1,n)
       end
 cc      subroutine funct(kk2,b,f,h,ifg)
       subroutine funct(kk2,b,f,h,ifg,xx,yy,t,nn,mm,iopt,ff,
-     & kkx,kky,kkc,kkt,lf)
+     & kkx,kky,kkc,kkt,kmax,lf)
 c
 c     likelihood function of l-g hawkes' point process
 c
@@ -600,7 +606,7 @@ cc      dimension ay(50),eyi(50),syi(50),sy(50),dsy(50),gy(50),ggy(50)
 cc      dimension ac(50),at(50),gc(50),gt(50),ggc(50),ggt(50)
 cc      dimension dei(50)
       dimension xx(nn),yy(nn)
-      dimension lf(51,51)
+      dimension lf(kmax,kmax)
       dimension b(kk2),h(kk2)
       dimension a(kkx),ei(kkx+1),si(kkx+1),s(kkx+1),ds(kkx+1)
       dimension g(kkx),gg(kkx),ay(kky),eyi(kky+1),syi(kky+1)

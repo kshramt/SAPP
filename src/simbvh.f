@@ -36,7 +36,7 @@ cc      dimension ei(100),ej(100),fi(100),fj(100),lf(51,51)
 cc      dimension ei2(100),ej2(100),fi2(100),fj2(100)
       dimension xx(nnmax),yy(mmmax)
       dimension axx(kxx),axy(kxy),axz(kxz),ayx(kyx),ayy(kyy),ayz(kyz)
-      dimension ei(kmax),ej(kmax),fi(kmax),fj(kmax),lf(51,51)
+      dimension ei(kmax),ej(kmax),fi(kmax),fj(kmax),lf(kmax,kmax)
       dimension ei2(kmax),ej2(kmax),fi2(kmax),fj2(kmax)
 c
 c
@@ -66,7 +66,7 @@ cc     &                 ptymax,lf,i1,j1)
       implicit real*8(a-h,o-z)
       dimension axx(1),axy(1),axz(1),xx(1),yy(1),ei(1),ej(1),fi(1),fj(1)
       dimension ayx(1),ayy(1),ayz(1),ei2(1),ej2(1),fi2(1),fj2(1)
-      dimension lf(51,51)
+      dimension lf(kmax,kmax)
       real*4r
 c---
       err=0.0
@@ -83,7 +83,8 @@ c---
       fj2(k)=0.0
   100 continue
 c---------------------
-      call comfac(lf)
+cc     call comfac(lf)
+      call comfac(kmax,lf)
 c---------------------
       x=0.0
       uity=ptxmax+ptymax+fxxmax+fxymax+fyxmax+fyymax
@@ -109,7 +110,7 @@ c-----------------------------------------------------------------------
 cc      call fx(i,j,x,xity,yity,axx,axy,axz,ayx,ayy,ayz,kxx,kxy,kxz,kyx,
 cc     &        kyy,kyz,c,d,c2,d2,lf,ei,ej,fi,fj,ei2,ej2,fi2,fj2,xx,yy)
       call fxs(i,j,x,xity,yity,axx,axy,axz,ayx,ayy,ayz,kxx,kxy,kxz,
-     &     kyx,kyy,kyz,c,d,c2,d2,lf,ei,ej,fi,fj,ei2,ej2,fi2,fj2,xx,yy)
+     & kyx,kyy,kyz,kmax,c,d,c2,d2,lf,ei,ej,fi,fj,ei2,ej2,fi2,fj2,xx,yy)
 c-----------------------------------------------------------------------
       probx=xity/uity
       prob=(xity+yity)/uity
@@ -223,13 +224,16 @@ c
       end
 cc      subroutine fx(i,j,x,xity,yity,axx,axy,axz,ayx,ayy,ayz,kxx,kxy,kxz,
 cc     &       kyx,kyy,kyz,c,d,c2,d2,lf,ei,ej,fi,fj,ei2,ej2,fi2,fj2,xx,yy)
-      subroutine fxs(i,j,x,xity,yity,axx,axy,axz,ayx,ayy,ayz,kxx,kxy,   
-     &   kxz,kyx,kyy,kyz,c,d,c2,d2,lf,ei,ej,fi,fj,ei2,ej2,fi2,fj2,xx,yy)
+      subroutine fxs(i,j,x,xity,yity,axx,axy,axz,ayx,ayy,ayz,kxx,kxy,
+     &   kxz,kyx,kyy,kyz,kmax,c,d,c2,d2,lf,ei,ej,fi,fj,ei2,ej2,fi2,fj2,
+     &   xx,yy)
 c
 c     intensity processes
 c
       implicit real * 8 (a-h,o-z)
-      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1),lf(51,51)
+cc      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1),lf(51,51)
+      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1)
+      dimension lf(kmax,kmax)
       dimension ayx(1),ayy(1),ayz(1),ei2(1),ej2(1),fi2(1),fj2(1)
       dimension xx(1),yy(1)
 c

@@ -68,7 +68,8 @@ cc     &                 xx,yy,ei,ej,fi,fj,kmax,ptxmax,lf,i1,j1)
 cc      dimension axx(1),axy(1),axz(1),xx(1),yy(1),ei(1),ej(1),fi(1),fj(1)
       dimension axx(1),axy(1),axz(1),xx(1),yy(1)
       dimension ei(kmax),ej(kmax),fi(kmax),fj(kmax)
-      dimension lf(51,51)
+cc      dimension lf(51,51)
+      dimension lf(kmax,kmax)
       real*4r
 c
       err=0.0
@@ -81,7 +82,8 @@ c
       fj(k)=0.0
   100 continue
 c-------------------------
-      call comfac(lf)
+cc      call comfac(lf)
+      call comfac(kmax,lf)
 c-------------------------
       x=0.0
       xx(1)=0.0
@@ -110,7 +112,8 @@ c--------------------
       if(x.le.yy(j+1)) go to 110
       x=yy(j+1)
 c-----------------------------------------------------------------
-      call fx(i,j,yy(j+1),dmx,axx,axy,axz,kxx,kxy,kxz,c,d,lf,ei,ej,
+cc      call fx(i,j,yy(j+1),dmx,axx,axy,axz,kxx,kxy,kxz,c,d,lf,ei,ej,
+      call fx(i,j,yy(j+1),dmx,axx,axy,axz,kxx,kxy,kxz,c,d,kmax,lf,ei,ej,
      &        fi,fj,xx,yy)
 c-----------------------------------------------------------------
       do 120 k=1,kxy
@@ -122,7 +125,8 @@ c
   110 continue
 c
 c------------------------------------------------------------
-      call fx(i,j,x,xity,axx,axy,axz,kxx,kxy,kxz,c,d,lf,ei,ej,
+cc      call fx(i,j,x,xity,axx,axy,axz,kxx,kxy,kxz,c,d,lf,ei,ej,
+      call fx(i,j,x,xity,axx,axy,axz,kxx,kxy,kxz,c,d,kmax,lf,ei,ej,
      &        fi,fj,xx,yy)
 c------------------------------------------------------------
       probx=xity/uity
@@ -195,13 +199,16 @@ cc      dimension bxx(100),bxy(100)
       duity=xity
       return
       end
-      subroutine fx(i,j,x,xity,axx,axy,axz,kxx,kxy,kxz,c,d,lf,ei,
+cc      subroutine fx(i,j,x,xity,axx,axy,axz,kxx,kxy,kxz,c,d,lf,ei,
+      subroutine fx(i,j,x,xity,axx,axy,axz,kxx,kxy,kxz,c,d,kmax,lf,ei,
      &              ej,fi,fj,xx,yy)
 c
 c     intensity processes
 c
       implicit real * 8 (a-h,o-z)
-      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1),lf(51,51)
+cc      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1),lf(51,51)
+      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1)
+      dimension lf(kmax,kmax)
       dimension xx(1),yy(1)
       if(i.eq.0) go to 30
       dxxi=x-xx(i)

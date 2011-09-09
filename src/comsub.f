@@ -32,16 +32,19 @@ cc      write(6,1) prb,r1,rwx,rwy,phs
       end
 c
 c
-      subroutine comfac(lf)
+cc      subroutine comfac(lf)
+      subroutine comfac(kmax,lf)
 c
 c     calculation of the combination factorials
 c     n & m should be interpreted to be n-1 & m-1, respectively.
 c
-      dimension lf(51,51)
+cc      dimension lf(51,51)
+      dimension lf(kmax,kmax)
       lf(1,1)=1
       lf(2,1)=1
       lf(2,2)=1
-      do 10 n=3,51
+cc      do 10 n=3,51
+      do 10 n=3,kmax
       lf(n,1)=1
       lf(n,n)=1
       do 20 m=2,n-1
