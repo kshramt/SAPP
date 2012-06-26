@@ -2,7 +2,7 @@ cc      program simbvh
       subroutine simbvhf(kxx,kxy,kxz,kyx,kyy,kyz,t,c,d,c2,d2,axx,axy,
      & axz,ayx,ayy,ayz,ptxmax,ptymax,kmax,xx,yy,i1,j1,err,nnmax,mmmax)
 c
-      include 'sapp.h'
+      include 'sapp_f.h'
 c
 c     this program performs the simulation of bi-variate hawkes'
 c  mutually exciting point processes.  the response functions are
@@ -55,7 +55,6 @@ cc     &           ei2,ej2,fi2,fj2,kmax,ptxmax,ptymax,lf,i1,j1)
 c
 cc      call output(xx,yy,i1,j1,t)
 c
-cc      stop
       return
       end
       subroutine simda(kxx,kxy,kxz,kyx,kyy,kyz,t,c,d,c2,d2,axx,axy,axz,

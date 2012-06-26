@@ -6,7 +6,7 @@
 }
 \usage{
   etasap(time, mag, threshold=0.0, reference=0.0, parami,
-         zts=0.0, tstart, zte, approx=2, tmp.file=NULL, plot=TRUE)
+         zts=0.0, tstart, zte, approx=2, tmpfile=NULL, nlmax=1000, plot=TRUE)
 }
 \arguments{
   \item{time}{the time measured from the main shock(t=0).}
@@ -20,8 +20,9 @@
   \item{approx}{>0 : the level for approximation version, which is one of the five levels 1, 2, 4, 8 and 16.
  The higher level means faster processing but lower accuracy. \cr
                 =0 : the exact version.}
-  \item{tmp.file}{temporary file name.
- If NULL (default) output no file, otherwise output \eqn{lambda}, negative log-likelihood value \eqn{(-LL)} and two estimates of square sum of gradients.}
+  \item{tmpfile}{write the process of maximum likelihood procedure to \eqn{tmpfile}.\cr
+                 If "" print the process to the standard output and if NULL (default) no report.}
+  \item{nlmax}{the maximum number of steps in the process of minimizing.} 
   \item{plot}{logical. If TRUE (default) the graph of cumulative number and magnitude of earthquakes
  against the ordinary time is plotted.}
 }

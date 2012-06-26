@@ -8,7 +8,7 @@
 
 \usage{
   linlin(external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=NULL,
-         at=NULL, opt=0, tmp.file=NULL)
+         at=NULL, opt=0, tmpfile=NULL, nlmax=1000)
 }
 
 \arguments{
@@ -21,10 +21,11 @@
   \item{ay}{coefficients of input response function.}
   \item{ac}{coefficients of cycle.}
   \item{at}{coefficients of trend.}
-  \item{opt}{=0 : minimize the likelihood with fixed exponential coefficient \eqn{c}\cr
-             =1 : not fixed \eqn{d}.}
-  \item{tmp.file}{temporary file name. If NULL (default) output no file, otherwise output \eqn{lambda},
-                  \eqn{log-likelihood} and \eqn{gradient}.}
+  \item{opt}{0 : minimize the likelihood with fixed exponential coefficient \eqn{c}\cr
+             1 : not fixed \eqn{d}.}
+  \item{tmpfile}{write the process of minimizing to \eqn{tmpfile}.\cr
+                 If "" print the process to the standard output and if NULL (default) no report.}
+  \item{nlmax}{the maximum number of steps in the process of minimizing.} 
 }
 
 \value{

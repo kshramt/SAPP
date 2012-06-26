@@ -2,7 +2,7 @@ cc      program linsim
       subroutine linsimf(kxx,kxy,kxz,t,c,d,axx,axy,axz,yy,mm,ptxmax,
      & kmax,xx,i1,j1,err)
 c
-      include 'sapp.h'
+      include 'sapp_f.h'
 c
 c     this program performs similation of a self-exciting point process
 c  which is also stimulated by another given point process data; non
@@ -58,7 +58,6 @@ cc     &           xx,yy,ei,ej,fi,fj,kmax,ptxmax,lf,i1,j1)
 c
 cc      call output(xx,yy,i1,j1,t)
 c
-cc      stop
       return
       end
       subroutine simxx(kxx,kxy,kxz,t,c,d,axx,axy,axz,fxxmax,fxymax,
@@ -134,7 +133,8 @@ c------------------------------------------------------------
       if(prob.le.1.0d00)go to 50
 cc      write(6,1) prob
       err=prob
-      stop
+cc      stop
+      return
    50 continue
    60 continue
 c-----------------------

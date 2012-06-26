@@ -1,8 +1,8 @@
 cc      program respoi
-      subroutine respoif(z,xmg,dep,xp,yp,nd,xini,npara,zts,zte,tstart,
-     &                   amx1,ntstar,xx,x,nn)
+      subroutine respoif(z,xmg1,dep1,xp1,yp1,nd,xini,npara,zts,zte,
+     &                       tstart,amx1,xmg,dep,xp,yp,ntstar,xx,x,nn)
 c
-      include 'sapp.h'
+      include 'sapp_f.h'
 c
 c-----------------------------------------------------------------------
 c     residual of modified Omori Poisson process
@@ -16,6 +16,14 @@ cc      common /range/tstart,ntstar
 cc      common t,nn,mm,iappr,nfunct
       dimension z(nd), dep(nd), xmg(nd), xp(nd), yp(nd), xini(npara)
       dimension xx(nd), x(nd)
+      dimension xmg1(nd), dep1(nd), xp1(nd), yp1(nd)
+c
+      do 9 i=1,nd
+         xmg(i) = xmg1(i)
+         dep(i) = dep1(i)
+         xp(i) = xp1(i)
+         yp(i) = yp1(i)
+    9 continue
 c
 cc      call input
       call input1(z,xmg,dep,xp,yp,nd,zts,zte,tstart,ntstar,amx1,xx,nn,t)
@@ -40,7 +48,6 @@ cc      call residual
       call presidual(xini,npara,tstart,ntstar,t,xx,x,nn)
 c
    20 continue
-cc      stop
       return
       end
 c***********************************************************************

@@ -1,6 +1,6 @@
 .packageName <- "SAPP"
 
-eptren <- function( data,mag=NULL,threshold=0.0,nparam,nsub,cycle=0,tmp.file=NULL,plot=TRUE )
+eptren <- function( data,mag=NULL,threshold=0.0,nparam,nsub,cycle=0,tmpfile=NULL,nlmax=1000,plot=TRUE )
 {
 
 # data                   #  point process data
@@ -36,18 +36,11 @@ eptren <- function( data,mag=NULL,threshold=0.0,nparam,nsub,cycle=0,tmp.file=NUL
 
   nmax <- nparam
   if( nfunct==2 ) nmax <- 2*nparam-1
-  tmp.file <- paste(tmp.file, " ")
-    
-  xa <- array(0, dim=c(nmax,nparam))
-  aic <- rep(0, nparam)
-  aicmin <- 0
-  min_order <- 0
-
   np <- 101
-  xval <- rep(0,np)
-  fval <- rep(0,np)
+  nlm <- nlmax
+  if( is.null(tmpfile) ) nlm <- 0
 
-  z <- .Fortran("eptrenf",
+  z <- .Call("eptren",
 	as.double(xx),
 	as.double(t),
 	as.integer(nn),
@@ -55,17 +48,11 @@ eptren <- function( data,mag=NULL,threshold=0.0,nparam,nsub,cycle=0,tmp.file=NUL
 	as.integer(nparam),
 	as.integer(nsub),
 	as.double(cycle),
-	xa = as.double(xa),
-	aic = as.double(aic),
-	aicmin = as.double(aicmin),
-	min_order = as.integer(min_order),
-       xval = as.double(xval),
-       fval = as.double(fval),
 	as.integer(nmax),
 	as.integer(np),
-	as.character(tmp.file) )
+	as.integer(nlm))
 
-  xa <- array(z$xa, dim=c(nmax,nparam))
+  xa <- array(z[[1L]], dim=c(nmax,nparam))
   param <- list()
   for( i in 1:nparam ) {
     m <- i
@@ -80,8 +67,8 @@ eptren <- function( data,mag=NULL,threshold=0.0,nparam,nsub,cycle=0,tmp.file=NUL
     data1[,2] <- magnitude
     if( is.null(mag) ) data1[1:nn,2] <- rep(1.0, nn)
     data2 <- matrix(, nrow=np, ncol=2)
-    data2[,1] <- z$xval
-    data2[,2] <- z$fval
+    data2[,1] <- z[[5L]]
+    data2[,2] <- z[[6L]]
     if( cycle == 0 ) {
       plot(data2, type="l", main="EPTREN-Trend", xlab="Time", ylab="Intensity Rate" )
       plot(data1, type="h", main="", xlab="Time", ylab="Magnitude" )
@@ -93,7 +80,17 @@ eptren <- function( data,mag=NULL,threshold=0.0,nparam,nsub,cycle=0,tmp.file=NUL
     par(mfrow=c(1,1))
   }
 
-  eptren.out <- list( aic=z$aic,param=param,aicmin=z$aicmin,maice.order=z$min_order,time=z$xval,intensity=z$fval )
+  if( nlm > 0 ) {
+    nl <- z[[12L]]
+    x <- array(z[[7L]], c(nmax,nparam))
+    g <-array(z[[8L]], c(nmax,nparam))
+    id <- z[[9L]][1:nl]
+    ramda <- z[[10L]][1:nl]
+    ee <- z[[11L]][1:nl]
+    print.process(nfunct, nparam, x, g, id, ramda, ee, tmpfile)
+  }
+
+  eptren.out <- list( aic=z[[2L]],param=param,aicmin=z[[3L]],maice.order=z[[4L]],time=z[[5L]],intensity=z[[6L]] )
   class( eptren.out ) <- "eptren"
   return( eptren.out )
 }
@@ -111,7 +108,7 @@ print.eptren <- function(x, ...)
     cat(" parameters\n")
     ii <- length(x$param[[i]])
     for( j in 1:ii ) {
-      cat(sprintf("\t%e",x$param[[i]][j]))
+      cat(sprintf("  %e",x$param[[i]][j]))
       if( (j%%5 == 0) & j>1 ) cat("\n")
     }
     cat("\n")
@@ -122,12 +119,11 @@ print.eptren <- function(x, ...)
   i <- x$maice.order
   ii <- length(x$param[[i]])
   for( j in 1:ii ) {
-    cat(sprintf("\t%e",x$param[[i]][j]))
+    cat(sprintf("   %e",x$param[[i]][j]))
     if( (j%%5 == 0) & j>1 ) cat("\n")
   }
   cat("\n")
 }
-
 
 pgraph <- function( data,mag,threshold=0.0,h,npoint,days,delta=0.0,dmax=0.0,separate.graphics=FALSE )
 {
@@ -159,27 +155,9 @@ pgraph <- function( data,mag,threshold=0.0,h,npoint,days,delta=0.0,dmax=0.0,sepa
     }
   zd <- zd[1:nn]
   xmg <- xmg[1:nn]
+  nn1 = nn -1
 
-  nn1 <- nn-1
-  xtau <- rep(0,2*nn)
-  y <- rep(0,2*nn)
-  kn <- 0
-  xl <- rep(0,nn1)
-  xx <- array(0, dim=c(nn1,6))
-  ydev <- rep(0,nn1)
-  ui <- rep(0,nn1)
-  ncn <- rep(0,nn1)
-  sui <- rep(0,nn1)
-  xp <- rep(0,4)
-  xrate <- rep(0,npoint)
-  dlt <- 0
-  xtime <- rep(0,kmax)
-  yvar <- array(0, dim=c(5,kmax))
-  sigma <- rep(0,kmax)
-  k <- 0
-  ier <- 0
-
-  z <- .Fortran("pgraphf",
+  z <- .Call("pgraph",
 	as.integer(nfunct),
 	as.integer(isi),
 	as.double(zd),
@@ -189,45 +167,28 @@ pgraph <- function( data,mag,threshold=0.0,h,npoint,days,delta=0.0,dmax=0.0,sepa
 	as.double(h),
 	as.double(delta),
 	as.double(dmax),
-	as.integer(kmax),
-	xtau = as.double(xtau),
-	y = as.double(y),
-	kn = as.integer(kn),
-	xl = as.double(xl),
-	xx = as.double(xx),
-	ydev = as.double(ydev),
-	ui = as.double(ui),
-	ncn = as.double(ncn),
-	sui = as.double(sui),
-	xp = as.double(xp),
-	xrate = as.double(xrate),
-	dlt = as.double(dlt),
-	xtime = as.double(xtime),
-	yvar = as.double(yvar),
-	sigma = as.double(sigma),
-	k = as.integer(k),
-	ier = as.integer(ier) )
+	as.integer(kmax) )
 
-  kn <- z$kn
-  k <- z$k
+  kn <- z[[3L]]
+  k <- z[[16L]]
 
   tn <- data[n1]/as.double(nn)
-  xtau <- z$xtau[1:kn]
-  y <- z$y[1:kn]
-  xl <- z$xl[1:nn1] * tn
-  xx <- array(z$xx, dim=c(nn1,6)) * tn
+  xtau <- z[[1L]][1:kn]
+  y <- z[[2L]][1:kn]
+  xl <- z[[4L]][1:nn1] * tn
+  xx <- array(z[[5L]], dim=c(nn1,6)) * tn
   xx <- xx[1:nn1,1:6]
-  ydev <- z$ydev[1:nn1]
-  ui <- z$ui[1:nn1]
-  ncn <- z$ncn[1:nn1]
-  sui <- z$sui[1:nn1]
-  xp <- z$xp
-  xrate <- z$xrate
-  dlt <- z$dlt
-  xtime <- z$xtime[1:k]
-  yvar <- array(z$yvar, dim=c(5,kmax))
+  ydev <- z[[6L]][1:nn1]
+  ui <- z[[7L]][1:nn1]
+  ncn <- z[[8L]][1:nn1]
+  sui <- z[[9L]][1:nn1]
+  xp <- z[[10L]]
+  xrate <- z[[11L]][1:npoint]
+  dlt <- z[[12L]]
+  xtime <- z[[13L]][1:k]
+  yvar <- array(z[[14L]], dim=c(5,kmax))
   yvar <- yvar[1:5,1:k]
-  sigma <- z$sigma[1:k]
+  sigma <- z[[15L]][1:k]
 
   plot.pgraph( zd,xmg,h,kn,xtau,y,xl,xx,ydev,ui,ncn,sui,xp,npoint,dlt,xrate,k,xtime,sigma,yvar,separate.graphics )
 
@@ -353,18 +314,7 @@ ptspec <- function( data,nfre,prdmin,prd,nsmooth=1,pprd,interval,plot=TRUE )
   nt <- length(pprd)     #  number of particular periodcities to be investigated
 # interval               #  length of observed time interval of events
 
-  prb <- 0.0
-  r1 <- 0.0
-  rwx <- 0.0
-  rwy <- 0.0
-  phs <- 0.0
-  wt <- rep(0,nt)
-  ht <- rep(0,nt)
-  w <- rep(0,nh1)
-  h <- rep(0,nh1)
-  g <- rep(0,nh1)
-
-  z <- .Fortran("ptspecf",
+  z <- .Call("ptspec",
 	as.double(data),
 	as.integer(n),
 	as.double(interval),
@@ -373,23 +323,13 @@ ptspec <- function( data,nfre,prdmin,prd,nsmooth=1,pprd,interval,plot=TRUE )
 	as.double(prd),
 	as.integer(nfre),
 	as.integer(nt),
-	as.integer(is),
-	prb = as.double(prb),
-	r1 = as.double(r1),
-	rwx = as.double(rwx),
-	rwy = as.double(rwy),
-	phs = as.double(phs),
-	wt = as.double(wt),
-	ht = as.double(ht),
-	w = as.double(w),
-	h = as.double(h),
-	g = as.double(g) )
+	as.integer(is) )
 
-  wt <- z$wt
-  ht <- z$ht
-  w <- z$w
-  h <- z$h
-  g <- z$g
+  wt <- z[[6L]]
+  ht <- z[[7L]]
+  w <- z[[8L]]
+  h <- z[[9L]]
+  g <- z[[10L]]
 
   if( plot == TRUE ) {
     par(mfrow=c(2,1))
@@ -426,8 +366,7 @@ ptspec <- function( data,nfre,prdmin,prd,nsmooth=1,pprd,interval,plot=TRUE )
     par(mfrow=c(1,1))
   }
 
-  ptspec.out <- list( f=w,db=h,power=g,rayleigh.prob=z$prb,distance=z$r1,rwx=z$rwx,rwy=z$rwy,phase=z$phs,
-                      n=n,nfre=nfre,prdmin=prdmin,nsmooth=nsmooth,interval=interval )
+  ptspec.out <- list( f=w, db=h, power=g, rayleigh.prob=z[[1L]], distance=z[[2L]], rwx=z[[3L]], rwy=z[[4]], phase=z[[5L]], n=n, nfre=nfre, prdmin=prdmin, nsmooth=nsmooth, interval=interval )
 
   class( ptspec.out ) <- "ptspec"
   return( ptspec.out )
@@ -481,12 +420,7 @@ linsim <- function( data,interval,c,d,ax,ay,at,ptmax )
   kmax <- max(kxx,kxy,kxz)
   kmax <- max(kmax,3)
 
-  xx <- rep(0,2*mm)
-  i1 <- 0
-  j1 <- 0
-  err <- 0.
-
-  z <- .Fortran("linsimf",
+  z <- .Call("linsim",
 	as.integer(kxx),
 	as.integer(kxy),
 	as.integer(kxz),
@@ -499,24 +433,22 @@ linsim <- function( data,interval,c,d,ax,ay,at,ptmax )
 	as.double(yy),
 	as.integer(mm),
 	as.double(ptmax),
-	as.integer(kmax),
-	xx = as.double(xx),
-	i1 = as.integer(i1),
-	j1 = as.integer(j1),
-	err = as.double(err) )
+	as.integer(kmax))
 
-  simul <- z$xx[1:z$i1]
-  input <- data[1:z$j1]
+  err <- z[[4L]]
+  if( err != 0. )
+    stop(sprintf(" warning: is ptmax correct?  prob=%f\n",err))
 
-  if( z$err!=0. )
-    cat(sprintf(" warning: is ptmax correct?  prob=%f\n",z$err))
+  simul <- z[[1L]][1:z[[2L]]]
+  input <- data[1:z[[3L]]]
+
 
   linsim.out <- list( in.data=input,sim.data=simul )
   return( linsim.out )
 }
 
 
-linlin <- function( external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=NULL, at=NULL, opt=0, tmp.file=NULL )
+linlin <- function( external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=NULL, at=NULL, opt=0, tmpfile=NULL, nlmax=1000 )
 {
   yy <- external       # input data set
   xx <- self.excit     # self-exciting data set
@@ -555,24 +487,15 @@ linlin <- function( external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=N
   }
   n <- length(x)
 
+# opt                # =0 : minimize the likelihood with fixed exponential coefficient c
+                       # =1 :  not fixed d
+
   kmax <- max(kkx,kky)+1
   kmax <- max(kmax,3)
+  nlm <- nlmax
+  if( is.null(tmpfile) )  nlm <- 0
 
-# opt                  # =0 : minimize the likelihood with fixed exponential coefficient c
-                       # =1 :  not fixed d
-  tmp.file <- paste(tmp.file, " ")
-
-  x1 <- rep(0,n)
-  x2 <- rep(0,n)
-  aic <- 0.0
-  f <- 0.0
-  prb <- 0.0
-  r1 <- 0.0
-  rwx <- 0.0
-  rwy <- 0.0
-  phs <- 0.0
-
-  z <- .Fortran("linlinf",
+  z <- .Call("linlin",
 	as.integer(n),
 	as.double(x),
 	as.integer(opt),
@@ -586,19 +509,14 @@ linlin <- function( external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=N
 	as.integer(kmax),
 	as.integer(kkc),
 	as.integer(kkt),
-	x1 = as.double(x1),
-	x2 = as.double(x2),
-	aic = as.double(aic),
-	f = as.double(f),
-	prb = as.double(prb),
-	r1 = as.double(r1),
-	rwx = as.double(rwx),
-	rwy = as.double(rwy),
-	phs = as.double(phs),
-	as.character(tmp.file) )
+	as.integer(nlm) )
+
+  ier <- z[[16L]]
+  if( ier == -1 )
+    stop(" subroutine funct : n or kkx or kky kkc kkt error")
 
 # initial estimates
-  x1 <- z$x1
+  x1 <- z[[1L]]
   c1 <- x1[1]
   d1 <- x1[2]
   ax1 <- NULL
@@ -611,7 +529,7 @@ linlin <- function( external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=N
   if( kkt>0 ) at1 <- x1[(kkx+kky+kkc+3):n]
 
 # final estimates
-  x2 <- z$x2
+  x2 <- z[[2L]]
   c2 <- x2[1]
   d2 <- x2[2]
   ax2 <- NULL
@@ -623,8 +541,19 @@ linlin <- function( external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=N
   if( kkc>0 ) ac2 <- x2[(kkx+kky+3):(kkx+kky+kkc+2)]
   if( kkt>0 ) at2 <- x2[(kkx+kky+kkc+3):n]
 
+  if( nlm > 0 ) {
+    nfunct <- 0
+    nl <- z[[15L]]
+    x <- array(z[[10L]], c(n,5))
+    g <-array(z[[11L]], c(n,5))
+    id <- z[[12L]][1:nl]
+    ramda <- z[[13L]][1:nl]
+    ee <- z[[14L]][1:nl]
+    print.process(nfunct, n, x, g, id, ramda, ee, tmpfile)
+  }
+
   linlin.out <- list( c1=c1,d1=d1,ax1=ax1,ay1=ay1,ac1=ac1,at1=at1,c2=c2,d2=d2,ax2=ax2,ay2=ay2,ac2=ac2,at2=at2,
-  aic2=z$aic,ngmle=z$f,rayleigh.prob=z$prb,distance=z$r1,rwx=z$rwx,rwy=z$rwy,phase=z$phs )
+  aic2=z[[3L]],ngmle=z[[4L]],rayleigh.prob=z[[5L]],distance=z[[6L]],rwx=z[[7L]],rwy=z[[8L]],phase=z[[9L]] )
 
   class( linlin.out ) <- "linlin"
   return( linlin.out )
@@ -744,13 +673,8 @@ simbvh <- function( interval,axx=NULL,axy=NULL,axz=NULL,ayx=NULL,ayy=NULL,ayz=NU
 
   nnmax <- 10000
   mmmax <- 10000
-  xx <- rep(0,nnmax)
-  yy <- rep(0,mmmax)
-  i1 <- 0
-  j1 <- 0
-  err <- 0.0
 
-  z <- .Fortran("simbvhf",
+  z <- .Call("simbvh",
 	as.integer(kxx),
 	as.integer(kxy),
 	as.integer(kxz),
@@ -771,23 +695,21 @@ simbvh <- function( interval,axx=NULL,axy=NULL,axz=NULL,ayx=NULL,ayy=NULL,ayz=NU
 	as.double(ptxmax),
 	as.double(ptymax),
 	as.integer(kmax),
-	xx = as.double(xx),
-	yy = as.double(yy),
-	i1 = as.integer(i1),
-	j1 = as.integer(j1),
-	err = as.double(err),
 	as.integer(nnmax),
 	as.integer(mmmax) )
 
-  if( z$err!=0. )
-    cat(sprintf(" warning: are ptxmax & ptymax correct? prob=%f\n",z$err))
+  err <- z[[5L]]
+  if( err != 0. )
+    cat(sprintf(" warning: are ptxmax & ptymax correct? prob=%f\n",err))
 
-  simbvh.out <- list( x=z$xx[1:z$i1], y=z$yy[1:z$j1] )
+  nx <- z[[3L]]
+  ny <- z[[4L]]
+  simbvh.out <- list( x=z[[1L]][1:nx], y=z[[2L]][1:ny] )
   return( simbvh.out )
 }
 
 
-momori <- function( data,mag=NULL,threshold=0.0,tstart,tend,parami,tmp.file=NULL )
+momori <- function( data, mag=NULL, threshold=0.0, tstart, tend, parami, tmpfile=NULL, nlmax=1000 )
 {
 
 # data                   #  point process data
@@ -806,7 +728,6 @@ momori <- function( data,mag=NULL,threshold=0.0,tstart,tend,parami,tmp.file=NULL
     return()
   }
   parami <- c(parami[1:3],0,parami[4])
-  tmp.file <- paste(tmp.file, " ")
 
   nn <- 0
   xx <- NULL
@@ -827,22 +748,10 @@ momori <- function( data,mag=NULL,threshold=0.0,tstart,tend,parami,tmp.file=NULL
 
   nfunct <- 6
   ncount <- 1
-  kn <- (np-1)/3
-  ff <- 0.0
-  x1 <- rep(0,np)
-  x <- rep(0,np)
-  ahaic <- rep(0,ncount)
-#  kn <- (np-1)/3
-  kn <- np/3
-  if( kn==0 ) kn <- 1
-  t0 <- 0
-  ti <- rep(0,kn)
-  ak <- rep(0,kn)
-  c <- rep(0,kn)
-  p <- rep(0,kn)
-  cls <- rep(0,kn)
+  nlm <- nlmax
+  if( is.null(tmpfile) )  nlm <- 0
 
-  z <- .Fortran("momorif",
+  z <- .Call("momori",
 	as.double(xx),
 	as.integer(nn),
 	as.double(parami),
@@ -852,25 +761,26 @@ momori <- function( data,mag=NULL,threshold=0.0,tstart,tend,parami,tmp.file=NULL
 	as.double(tstart),
 	as.integer(ncount),
 	as.integer(nfunct),
-	ff=as.double(ff),
-	x1=as.double(x1),
-	x=as.double(x),
-	ahaic=as.double(ahaic),
-	t0=as.double(t0),
-	ti=as.double(ti),
-	ak=as.double(ak),
-	c=as.double(c),
-	p=as.double(p),
-	cls=as.double(cls),
-	as.character(tmp.file) )
+	as.integer(nlm) )
 
-#  x0 <- 0
-#  param2 <- c(t=z$x[1], k=z$x[2], c=z$x[3], p=x0, cls=z$x[4])
-  pa2 <- z$x
+#  param <- c(t=z$x[1], k=z$x[2], c=z$x[3], p=x0, cls=z$x[4])
+  pa1 <- z[[4L]]
+  pa2 <- list(t_i=z[[6L]], K=z[[8L]], c=z[[9L]], p=z[[10L]], cls=z[[11L]])
 
-  ti <- c(z$t0,z$ti[1:kn-1])
-  pa <- list(t_i=ti, K=z$ak, c=z$c, p=z$p, cls=z$cls)
-  momori.out <- list( param1=z$x1, param2=pa2, ngmle=z$ff, aic=z$ahaic, param=pa )
+  if( nlm > 0 ) {
+    x <- array(z[[2L]], c(np,2))
+    g <- array(z[[3L]], c(np,2))
+    nl <- z[[17L]]
+    id <- z[[12L]][1:nl]
+    ramda <- z[[13L]][1:nl]
+    xx0 <- array(z[[14L]], c(np,nlmax))
+    xx1 <- xx0[1:np,1:nl]
+    h <- array(z[[15L]], c(np,np,2))
+    hf <- array(z[[16L]], c(np,np,2,2))
+    print.process6(id, x, g, h, hf, ramda, xx1, tmpfile)
+  }
+
+  momori.out <- list( param=pa1, ngmle=z[[1L]], aic=z[[5L]], plist=pa2 )
   return( momori.out )
 }
 
@@ -896,14 +806,10 @@ respoi <- function( time,mag,param,zts,tstart,zte,threshold=0.0,plot=TRUE )
   dep <- rep(0,nd)
   xp <- rep(0,nd)
   yp <- rep(0,nd)
-  ntstar <- 0
-  xx <- rep(0,nd)
-  x <- rep(0,nd)
-  nn <- 0
 
-  z <- .Fortran("respoif",
+  z <- .Call("respoi",
 	as.double(time),
-	mag=as.double(mag),
+	as.double(mag),
 	as.double(dep),
 	as.double(xp),
 	as.double(yp),
@@ -913,19 +819,15 @@ respoi <- function( time,mag,param,zts,tstart,zte,threshold=0.0,plot=TRUE )
 	as.double(zts),
 	as.double(zte),
 	as.double(tstart),
-	as.double(threshold),
-	ntstar=as.integer(ntstar),
-	xx=as.double(xx),
-	x=as.double(x),
-	nn=as.integer(nn))
+	as.double(threshold))
 
-  n <- z$nn
-  cn <- 1:n - z$ntstar
-  ti <- z$x[1:n]
-  mag <- z$mag[1:n]
+  n <- z[[8L]]
+  cn <- c(1:n) - z[[5L]]
+  ti <- z[[7L]][1:n]
+  mag1 <- z[[1L]][1:n]
 
   if( plot == TRUE ) {
-    mag1 <- threshold
+    t <- threshold
     level <- min(0, cn[1])
     xrange <- c(min(ti), max(ti))
     mgrange <- max(cn)/4
@@ -935,9 +837,9 @@ respoi <- function( time,mag,param,zts,tstart,zte,threshold=0.0,plot=TRUE )
        main = "Omori-Utsu Residual", xlab="Transformed Time", 
        ylab = "Cumulative Number of Events", lwd=1, pty="s",xaxs='r')
     points(ti, 1:length(ti)+cn[1]+1, type='s') 
-    mgmax <- max(mag - mag1 + 1)
-    mag <- mag - mag1 + 0.5
-    segments(ti, bottom, ti, mag/mgmax * mgrange + bottom)	
+    mgmax <- max(mag1 - t + 1)
+    mag1 <- mag1 - t + 0.5
+    segments(ti, bottom, ti, mag1/mgmax * mgrange + bottom)	
     abline(h=bottom)
     abline(h=0)
     abline(v=0,lty=2)
@@ -958,12 +860,23 @@ respoi2 <- function( etas,param,zts,tstart,zte,threshold=0.0,plot=TRUE )
   }
 
   nd <- dim(etas)[1]
-  xp <- etas[,2]         #  longitude
-  yp <- etas[,3]         #  latitude
-  mag <- etas[,4]        #  magnitude
-  time <- etas[,5]       #  time from the main shock in days
-  dep <- etas[,6]        #  depth
-
+#  xp <- etas[,2]         #  longitude
+#  yp <- etas[,3]         #  latitude
+#  mag <- etas[,4]        #  magnitude
+#  time <- etas[,5]       #  time from the main shock in days
+#  dep <- etas[,6]        #  depth
+  xp <- rep(0,nd)
+  yp <- rep(0,nd)
+  mag <- rep(0,nd)
+  time <- rep(0,nd)
+  dep <- rep(0,nd)
+  for( i in 1: nd ) {
+    xp[i] <- etas[i,2]
+    yp[i] <- etas[i,3]
+    mag[i] <- etas[i,4]
+    time[i] <- etas[i,5]
+    dep[i] <- etas[i,6]
+  }
 # param                  #  estimates of parameters
   np <- length(param) + 1
   if( np != 5 ) {
@@ -972,40 +885,27 @@ respoi2 <- function( etas,param,zts,tstart,zte,threshold=0.0,plot=TRUE )
   }
   param <- c(param[1:3],0,param[4])
 
-# zts                    #  the start of the precursory period
-# zstart                 #  the start of the target period
-# zte                    #  the end of the target period
-
-  ntstar <- 0
-  xx <- rep(0,nd)
-  x <- rep(0,nd)
-  nn <- 0
-
-  z <- .Fortran("respoif",
+  z <- .Call("respoi",
 	as.double(time),
-	mag=as.double(mag),
-	dep=as.double(dep),
-	xp=as.double(xp),
-	yp=as.double(yp),
+	as.double(mag),
+	as.double(dep),
+	as.double(xp),
+	as.double(yp),
 	as.integer(nd),
 	as.double(param),
 	as.integer(np),
 	as.double(zts),
 	as.double(zte),
 	as.double(tstart),
-	as.double(threshold),
-	ntstar=as.integer(ntstar),
-	xx=as.double(xx),
-	x=as.double(x),
-	nn=as.integer(nn))
+	as.double(threshold))
 
-  n <- z$nn
-  cn <- 1:n - z$ntstar
-  ti <- z$x[1:n]
-  mag <- z$mag[1:n]
+  n <- z[[8L]]
+  cn <- c(1:n) - z[[5L]]
+  ti <- z[[7L]][1:n]
+  mag1 <- z[[1L]][1:n]
 
   if( plot == TRUE ) {
-    mag1 <- threshold
+    t <- threshold
     level <- min(0, cn[1])
     xrange <- c(min(ti), max(ti))
     mgrange <- max(cn)/4
@@ -1015,9 +915,9 @@ respoi2 <- function( etas,param,zts,tstart,zte,threshold=0.0,plot=TRUE )
        main = "Omori-Utsu Residual", xlab="Transformed Time", 
        ylab = "Cumulative Number of Events", lwd=1, pty="s", xaxs='r')
     points(ti, 1:length(ti)+cn[1]+1, type='s') 
-    mgmax <- max(mag - mag1 + 1)
-    mag <- mag - mag1 + 0.5
-    segments(ti, bottom, ti, mag/mgmax * mgrange + bottom)	
+    mgmax <- max(mag1 - t + 1)
+    mag1 <- mag1 - t + 0.5
+    segments(ti, bottom, ti, mag1/mgmax * mgrange + bottom)	
     abline(h=bottom)
     abline(h=0)
     abline(v=0,lty=2)
@@ -1027,11 +927,11 @@ respoi2 <- function( etas,param,zts,tstart,zte,threshold=0.0,plot=TRUE )
 
   res <- matrix(, ncol=7, nrow=n)
   res[,1] <- cn
-  res[,2] <- z$xp[1:n]
-  res[,3] <- z$yp[1:n]
-  res[,4] <- z$mag[1:n]
-  res[,5] <- z$xx[1:n]
-  res[,6] <- z$dep[1:n]
+  res[,2] <- z[[3L]][1:n]
+  res[,3] <- z[[4L]][1:n]
+  res[,4] <- z[[1L]][1:n]
+  res[,5] <- z[[6L]][1:n]
+  res[,6] <- z[[2L]][1:n]
   res[,7] <- ti
   res <- data.frame(res)
   names(res) <- c("no.", "longitude", "latitude", "magnitude", "time", "depth", "trans.time")
@@ -1042,7 +942,7 @@ respoi2 <- function( etas,param,zts,tstart,zte,threshold=0.0,plot=TRUE )
 }
 
 
-etasap <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,approx=2,tmp.file=NULL,plot=TRUE )
+etasap <- function( time, mag, threshold=0.0, reference=0.0, parami, zts=0.0, tstart, zte, approx=2, tmpfile=NULL, nlmax=1000, plot=TRUE )
 {
 # time                   #  time from the main shock in days
   n <- length(time)
@@ -1060,7 +960,6 @@ etasap <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
 # zte                    #  the end of the target period
 # approx                 #  the level for approximation version (1, 2, 4, 8, 16)
                          #  =0 : the exact version
-  tmp.file <- paste(tmp.file, " ")
 
   nn <- 0
   xx <- NULL
@@ -1086,13 +985,10 @@ etasap <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
 
   nfunct <- 9
   if( approx == 0 ) nfunct <- 2
+  nlm <- nlmax
+  if( is.null(tmpfile) )  nlm <- 0
 
-  f <- 0.0
-  x <- rep(0,np)
-  aic2 <- 0.0
-
-
-  z <- .Fortran("etasapf",
+  z <- .Call("etasap",
 	as.double(xx),
 	as.double(magnitude),
 	as.integer(nn),
@@ -1105,10 +1001,20 @@ etasap <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
 	as.double(tstart),
 	as.integer(nfunct),
 	as.integer(approx),
-	f=as.double(f),
-	x=as.double(x),
-	aic2=as.double(aic2),
-	as.character(tmp.file) )
+	as.integer(nlm) )
+
+  p <- z[[2L]]
+  pa <- list(B=p[1], K=p[2], c=p[3], p=p[4], cls=p[5])
+
+  if( nlm ) {
+    nl <- z[[8L]]
+    id <- z[[5L]][1:nl]
+    g <- z[[3L]]
+    ee <- z[[6L]][1:nl]
+    x0 <- array(z[[7L]], c(np,nlmax))
+    x1 <- x0[1:np,1:nl]
+    print.process9(id, p, g, ee, x1, tmpfile)
+  }
 
   if( plot == TRUE ) {
     mag1 <- min(magnitude)
@@ -1130,13 +1036,14 @@ etasap <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
     abline(h = bottom)
   }
 
-  pa <- list(B=z$x[1], K=z$x[2], c=z$x[3], p=z$x[4], cls=z$x[5])
-  etasap.out <- list( ngmle=z$f, aic2=z$aic2, param=pa )
+  p <- z[[2L]]
+  pa <- list(B=p[1], K=p[2], c=p[3], p=p[4], cls=p[5])
+  etasap.out <- list( ngmle=z[[1L]], aic2=z[[4L]], param=pa )
   return( etasap.out )
 }
 
 
-etarpp <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,ztend=NULL, tmp.file=NULL,plot=TRUE )
+etarpp <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,ztend=NULL,plot=TRUE )
 {
 # time                   #  time from the main shock in days
   n <- length(time)
@@ -1154,7 +1061,6 @@ etarpp <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
 # zte                    #  the end of the target period
 # ztend                  #  the end of the predictionperiod
   if( is.null(ztend) ) ztend <- time[n]
-  tmp.file <- paste(tmp.file, " ")
 
   mm <- 0
   nn <- 0
@@ -1174,10 +1080,7 @@ etarpp <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
       }
     }
 
-  x <- rep(0,nn)
-  ntstar <- 0
-
-  z <- .Fortran("etarppf",
+  z <- .Call("etarpp",
 	as.double(time1),
 	as.double(mag1),
 	as.double(reference),
@@ -1186,12 +1089,11 @@ etarpp <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
 	as.integer(np),
 	as.double(zts),
 	as.double(ztend),
-	as.double(tstart),
-	x=as.double(x),
-	ntstar=as.integer(ntstar),
-	as.character(tmp.file) )
+	as.double(tstart) )
 
-  cnum <- 1:nn - z$ntstar
+  x <- z[[1L]]
+  ntstar <- z[[2L]]
+  cnum <- 1:nn - ntstar
 
   if( plot == TRUE ) {
 # r.seisetas
@@ -1206,12 +1108,12 @@ etarpp <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
     xrange <- c(min(time0),ztend)
     mgrange <- max(cn)/4
     bottom <- min(cn)-mgrange
-    yrange <- c(bottom,max(max(cn),max(z$x-z$ntstar)))
+    yrange <- c(bottom,max(max(cn),max(x-ntstar)))
 #    plot(xrange,yrange,type="n",main="ETAS Fit and Prediction",
     plot(xrange,yrange,type="n", main=paste("ETAS Fit and Prediction\nM>=",threshold,"S=",zts,"T=",zte,"Tend=",ztend),
          xlab="Ordinary Time (Days)", ylab="Cumulative Number of Events", lwd=1, xlim=c(xrange), pty="s", xaxs="r",yaxs="r")
 ## scan("work.res")
-    lines(time1,z$x+z$ntstar,type='l',col='red')
+    lines(time1, x+ntstar, type='l', col='red')
     segments(ti1,cn1,time0,cn1)
     segments(time0,cn1,time0,cn)
     mgmax <- max(mag0-mgmin+1)
@@ -1232,7 +1134,7 @@ etarpp <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
     par(ask=TRUE)
     level <- min(0, cnum[1])
     cn <- 1:mm+cnum[1]
-    ti <- z$x
+    ti <- x
     xrange <- c(min(ti),max(ti))
     mgrange <- max(cn/4)
     bottom <- min(cn)-mgrange
@@ -1240,7 +1142,7 @@ etarpp <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
 #    plot(xrange,yrange,type="n",main="ETAS Residual",
     plot(xrange,yrange,type="n",main=paste("ETAS Residual\nM>=",threshold,"S=",zts,"T=",zte,"Tend=",ztend),
          xlab="Transformed Time",ylab="Cumulative Number of Events",lwd=1, pty="s", xaxs="r")
-    points(z$x,1:nn+cnum[1]+1,type='s')
+    points(x, 1:nn+cnum[1]+1, type='s')
     mgmax <- max(mag1-threshold+1)
     mag3 <- mag1-threshold+0.5
     segments(ti,bottom,ti,mag3/mgmax*mgrange+bottom)
@@ -1254,12 +1156,12 @@ etarpp <- function( time,mag,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,z
     par(ask=FALSE)
   }
 
-  etarpp.out <- list( trans.time=z$x, no.tstart=z$ntstar )
+  etarpp.out <- list( trans.time=x, no.tstart=ntstar )
   return( etarpp.out )
 }
 
 
-etarpp2 <- function( etas,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,ztend=NULL,tmp.file=NULL,plot=TRUE )
+etarpp2 <- function( etas,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,ztend=NULL,plot=TRUE )
 {
   n <- dim(etas)[1]
   xp <- etas[,2]        #  longitude
@@ -1281,7 +1183,6 @@ etarpp2 <- function( etas,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,
 # zte                    #  the end of the target period
 # ztend                  #  the end of the predictionperiod
   if( is.null(ztend) ) ztend <- time[n]
-  tmp.file <- paste(tmp.file, " ")
 
   mm <- 0
   nn <- 0
@@ -1310,7 +1211,7 @@ etarpp2 <- function( etas,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,
   x <- rep(0,nn)
   ntstar <- 0
 
-  z <- .Fortran("etarppf",
+  z <- .Call("etarpp",
 	as.double(time1),
 	as.double(mag1),
 	as.double(reference),
@@ -1319,12 +1220,11 @@ etarpp2 <- function( etas,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,
 	as.integer(np),
 	as.double(zts),
 	as.double(ztend),
-	as.double(tstart),
-	x=as.double(x),
-	ntstar=as.integer(ntstar),
-	as.character(tmp.file) )
+	as.double(tstart)  )
 
-  cnum <- 1:nn - z$ntstar
+  x <- z[[1L]]
+  ntstar <- z[[2L]]
+  cnum <- 1:nn - ntstar
 
   if( plot == TRUE ) {
 # r.seisetas
@@ -1340,12 +1240,12 @@ etarpp2 <- function( etas,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,
     xrange <- c(min(time0),ztend)
     mgrange <- max(cn)/4
     bottom <- min(cn)-mgrange
-    yrange <- c(bottom,max(max(cn),max(z$x-z$ntstar)))
+    yrange <- c(bottom,max(max(cn),max(x-ntstar)))
 #    plot(xrange,yrange,type="n",main="ETAS Fit and Prediction",
     plot(xrange,yrange,type="n",main=paste("ETAS Fit and Prediction\nM>=",threshold,"S=",zts,"T=",zte,"Tend=",ztend),
          xlab="Ordinary Time (Days)",ylab="Cumulative Number of Events",lwd=1,xlim=c(xrange))
 ## scan("work.res")
-    lines(time1,z$x+z$ntstar,type='l',col='red')
+    lines(time1,x+ntstar,type='l',col='red')
     segments(ti1,cn1,time0,cn1)
     segments(time0,cn1,time0,cn)
     mgmax <- max(mag0-mgmin+1)
@@ -1366,7 +1266,7 @@ etarpp2 <- function( etas,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,
     par(ask=TRUE)
     level <- min(0, cnum[1])
     cn <- 1:mm+cnum[1]
-    ti <- z$x
+    ti <- x
     xrange <- c(min(ti),max(ti))
     mgrange <- max(cn/4)
     bottom <- min(cn)-mgrange
@@ -1375,7 +1275,7 @@ etarpp2 <- function( etas,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,
 #    plot(xrange,yrange,type="n",main="ETAS Residual",
     plot(xrange,yrange,type="n",main=paste("ETAS Residual\nM>=",threshold,"S=",zts,"T=",zte,"Tend=",ztend),
          xlab="Transformed Time",ylab="Cumulative Number of Events",lwd=1)
-    points(z$x,1:nn+cnum[1]+1,type='s')
+    points(x,1:nn+cnum[1]+1,type='s')
     mgmax <- max(mag1-threshold+1)
     mag3 <- mag1-threshold+0.5
     segments(ti,bottom,ti,mag3/mgmax*mgrange+bottom)
@@ -1396,7 +1296,7 @@ etarpp2 <- function( etas,threshold=0.0,reference=0.0,parami,zts=0.0,tstart,zte,
   res[,4] <- mag1
   res[,5] <- time1
   res[,6] <- dep1
-  res[,7] <- z$x
+  res[,7] <- x
   res <- data.frame(res)
   names(res) <- c("no.", "longitude", "latitude", "magnitude", "time", "depth", "trans.time")
 
@@ -1427,10 +1327,8 @@ etasim1 <- function( bvalue,nd,threshold=0.0,reference=0.0,param )
   tstart <- 0
   xm <- rep(0,nd)
   zz <- rep(0,nd)
-  xx <- rep(0,nd)
-  probx <- 0
 
-  z <- .Fortran("etasimf",
+  z <- .Call("etasim",
 	as.integer(ic),
 	as.double(bvalue),
 	as.double(tstart),
@@ -1442,17 +1340,15 @@ etasim1 <- function( bvalue,nd,threshold=0.0,reference=0.0,param )
 	as.double(c),
 	as.double(d),
 	as.double(p),
-	xm=as.double(xm),
-	as.double(zz),
-	xx=as.double(xx),
-	probx=as.double(probx) )
+	as.double(xm),
+	as.double(zz))
 
   sim <- matrix(, ncol=9, nrow=nd)
   sim[,1] <- 1:nd
   sim[,2] <- rep(0,nd)
   sim[,3] <- rep(0,nd)
-  sim[,4] <- z$xm
-  sim[,5] <- z$xx
+  sim[,4] <- z[[1L]]
+  sim[,5] <- z[[2L]]
   sim[,6] <- rep(0,nd)
   sim[,7] <- rep(0,nd)
   sim[,8] <- rep(0,nd)
@@ -1500,7 +1396,7 @@ etasim2 <- function( etas,tstart,threshold=0.0,reference=0.0,param )
   xx <- rep(0,nd)
   probx <- 0
 
-  z <- .Fortran("etasimf",
+  z <- .Call("etasim",
 	as.integer(ic),
 	as.double(bvalue),
 	as.double(tstart),
@@ -1513,12 +1409,10 @@ etasim2 <- function( etas,tstart,threshold=0.0,reference=0.0,param )
 	as.double(d),
 	as.double(p),
 	as.double(mag1),
-	as.double(time1),
-	xx=as.double(xx),
-	probx=as.double(probx) )
+	as.double(time1))
 
-  if( z$probx > 1 ) {
-    cat(sprintf("\n prob>1%f\n", z$probx))
+  if( z[[3L]] > 1 ) {
+    cat(sprintf("\n prob>1%f\n", z[[3L]]))
     return()
   } else {
     sim <- matrix(, ncol=9, nrow=nd)
@@ -1526,7 +1420,7 @@ etasim2 <- function( etas,tstart,threshold=0.0,reference=0.0,param )
     sim[,2] <- rep(0,nd)
     sim[,3] <- rep(0,nd)
     sim[,4] <- mag1
-    sim[,5] <- z$xx
+    sim[,5] <- z[[2L]]
     sim[,6] <- rep(0,nd)
     sim[,7] <- rep(0,nd)
     sim[,8] <- rep(0,nd)
@@ -1536,6 +1430,131 @@ etasim2 <- function( etas,tstart,threshold=0.0,reference=0.0,param )
 
     return( etasim2=sim )
   }
+}
+
+
+print.process <- function(nfunct, n, x, g, id, ramda, ee, tmpfile )
+{
+  nl <- length(ramda)
+  if( nfunct == 0 ) {
+    np <- n
+    ist <- 0
+  } else if ( nfunct == 1 ) {
+    np <- 1
+    ist <- 1
+  } else if ( nfunct == 2 ) {
+    np <- 1
+    ist <- 2
+  }
+  j2 <- 1
+
+  for( i in 1:nl ) {
+    k <- id[i]
+    if( k > 0 & k < 7 ) write(sprintf("lambda = %e     e%i = %e", ramda[i], k, ee[i]), tmpfile, append=TRUE);
+    if( k == 330 ) write(sprintf("lambda = %e     log likelihood  = %e", ramda[i], ee[i]), tmpfile, append=TRUE);
+    if( k == 340 ) write(sprintf("\n                          log-likelihood = %e", ramda[i]), tmpfile, append=TRUE);
+    if( k == -1 ) {
+      write("\n ----- x -----", tmpfile, append=TRUE)
+      out <- NULL
+      for( j in 1:np ) out <- paste(out, sprintf("  %e", x[j,j2]))
+      write(out, tmpfile, append=TRUE)
+
+      write("\n *** gradient ***", tmpfile, append=TRUE)
+      out <- NULL
+      for( j in 1:np ) out <- paste(out, sprintf("  %e",g[j,j2]**2))
+      out <- paste(out, "\n")
+      write(out, tmpfile, append=TRUE)
+
+      np <- np+ist
+      j2 <- j2+1
+    }
+  }
+  write(sprintf("................................ Process steps  1- %d ................................\n", nl), tmpfile, append=TRUE)
+}
+
+
+print.process6 <- function(id, x, g, h, hf, ramda, xx1, tmpfile)
+{
+  np <- dim(x)[1]
+  nl <- length(id)
+  j2 <- 1
+
+  for( i in 1:nl ) {
+    k <- id[i]
+    if( k == 8 ) {
+      out <- sprintf(" -ll = %e", ramda[i])
+      for ( j in 1:np ) out <- paste(out, sprintf("\t%e", xx1[j,i]**2))
+      write(out, tmpfile, append=TRUE)
+    } 
+    if( k == 330 ) 
+      write(sprintf(" lambda = %e     -LL =%e   %e   %e", ramda[i],xx1[1,i],xx1[2,i],xx1[3,i]), tmpfile, append=TRUE) 
+    if( k == 340 ) write(sprintf("\n\tinitial (-1)*Log-Likelihood = %e", xx1[1,i]), tmpfile)
+    if( k == 600 ) {
+      write("\n ----- x -----", tmpfile, append=TRUE)
+      out <- NULL
+      for( j in 1:np ) out <- paste(out, sprintf("  %e",x[j,j2]))
+      write(out, tmpfile, append=TRUE)
+
+      write("\n *** gradient ***", tmpfile, append=TRUE)
+      out <- NULL
+      for( j in 1:np ) out <- paste(out, sprintf("  %e",g[j,j2]))
+      write(out, tmpfile, append=TRUE)
+
+      write("\n *** estimated inverse hessian gradient ***", tmpfile, append=TRUE)
+      for( j0 in 1:np ) {
+         out <- NULL
+         for( j1 in 1:np ) out <- paste(out, sprintf("  %e",h[j0,j1,j2]))
+         write(out, tmpfile, append=TRUE)
+      }
+
+      write("\n *** fisher matrix ***", tmpfile, append=TRUE)
+      for( j0 in 1:np )  {
+        out <- NULL
+        for( j1 in 1:np ) out <- paste(out, sprintf("  %e",hf[j0,j1,j2,1]))
+        write(out, tmpfile, append=TRUE)
+      }
+
+      write("\n *** inverse fisher ***", tmpfile, append=TRUE)
+      for( j0 in 1:np )  {
+        out <- NULL
+        for( j1 in 1:np ) out <- paste(out, sprintf("  %e",hf[j0,j1,j2,2]))
+        out <- paste(out, "\n")
+        write(out, tmpfile, append=TRUE)
+      }
+      j2 <- j2+1
+    }
+  }
+  write(sprintf("................................ Process steps  1- %d ................................\n", nl), tmpfile, append=TRUE)
+}
+
+print.process9 <- function(id, x, g, ee, x1, tmpfile)
+{
+  np <- dim(x1)[1]
+  nl <- length(id)
+
+  for( i in 1:nl ) {
+    k <- id[i] 
+      if( k == 8 ) {
+        out <- sprintf(" -ll = %e", ee[i])
+        for ( j in 1:np ) out <- paste(out, sprintf("\t%e", x1[j,i]**2))
+        write(out, tmpfile, append=TRUE)
+      }
+    if( k == 330 ) 
+      write(sprintf(" lambda = %e     -LL =%e   %e   %e", ee[i],x1[1,i],x1[2,i],x1[3,i]), tmpfile, append=TRUE) 
+    if( k == 340 ) write(sprintf("\n\tinitial (-1)*Log-Likelihood = %e", x1[1,i]), tmpfile)
+    if( k == 600 ) {
+      write("\n ----- x -----", tmpfile, append=TRUE)
+      out <- NULL
+      for( j in 1:np ) out <- paste(out, sprintf("  %e",x[j]))
+      write(out, tmpfile, append=TRUE)
+      write("\n\n *** gradient ***", tmpfile, append=TRUE)
+      out <- NULL
+      for( j in 1:np ) out <- paste(out, sprintf("  %e",g[j]**2))
+      out <- paste(out, "\n")
+      write(out, tmpfile, append=TRUE)
+    }
+  }
+  write(sprintf("................................ Process steps  1- %d ................................\n", nl), tmpfile, append=TRUE)
 }
 
 .noGenerics <- TRUE

@@ -7,10 +7,10 @@
 }
 \usage{
   etarpp(time, mag, threshold=0.0, reference=0.0, parami,
-         zts=0.0, tstart, zte, ztend=NULL, tmp.file=NULL, plot=TRUE)
+         zts=0.0, tstart, zte, ztend=NULL, plot=TRUE)
 
   etarpp2(etas, threshold=0.0, reference=0.0, parami,
-          zts=0.0, tstart, zte, ztend=NULL, tmp.file=NULL, plot=TRUE)
+          zts=0.0, tstart, zte, ztend=NULL, plot=TRUE)
 }
 \arguments{
   \item{time}{the time measured from the main shock(t=0).}
@@ -24,8 +24,6 @@
   \item{tstart}{the start of the target period.}
   \item{zte}{the end of the target period.}
   \item{ztend}{the end of the prediction period. If NULL (default) the last time of available data is set.}
-  \item{tmp.file}{temporary file name.
- If NULL (default) output no file, otherwise output \eqn{lambda}, negative log-likelihood value \eqn{(-LL)} and two estimates of square sum of gradients.}
   \item{plot}{logical. If TRUE (default) the graphs of cumulative number and magnitude against the ordinary time and transformed time are plotted.}
 }
 \details{

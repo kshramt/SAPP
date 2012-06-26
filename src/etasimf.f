@@ -2,7 +2,7 @@ cc      program main
       subroutine etasimf(ic,bvalue,tstart,nd,ctmg,rfmg,a,b,c,d,p,
      &                   xm,zz,xx,probx)
 c
-      include 'sapp.h'
+      include 'sapp_f.h'
 c
       implicit real*8(a-h,o-z)
       real*4 r

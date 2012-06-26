@@ -1,4 +1,4 @@
-      INCLUDE 'sapp.h'
+      INCLUDE 'sapp_f.h'
 C------------------------------------------------- 
 C     cycle   ---  ptspec, linlin
 C     comfac  ---  linsim, linlin, simbvh

@@ -5,7 +5,7 @@
   Compute the maximum likelihood estimates (MLEs) of parameters in the Omori-Utsu (modified Omori) formula representing for the decay of occurrence rate of aftershocks with time.
 }
 \usage{
-  momori(data,mag=NULL,threshold=0.0,tstart,tend,parami,tmp.file=NULL)
+  momori(data,mag=NULL,threshold=0.0,tstart,tend,parami,tmpfile=NULL, nlmax=1000)
 }
 \arguments{
   \item{data}{point process data.}
@@ -14,7 +14,9 @@
   \item{tstart}{the start of the target period.}
   \item{tend}{the end of the target period.}
   \item{parami}{the initial estimates of the four parameters \eqn{B}, \eqn{K}, \eqn{c} and \eqn{p}.}
-  \item{tmp.file}{temporary file name. If NULL (default) output no file, otherwise output \eqn{lambda} and \eqn{log-likelihood}.}
+  \item{tmpfile}{write the process of minimizing to \eqn{tmpfile}.\cr
+                 If "" print the process to the standard output and if NULL (default) no report.}
+  \item{nlmax}{the maximum number of steps in the process of minimizing.} 
 }
 \details{
   The modified Omori formula represent the delay law of aftershock activity in time.
@@ -27,7 +29,7 @@
   In this function the negative log-likelihood function is minimized by the Davidon-Fletcher-Powell algorithm.
   Starting from a given set of initial guess of the parameters \code{parai}, \code{momori()} repeats calculations of function values and its gradients at each step of parameter vector.
   At each cycle of iteration, the linearly searched step (\eqn{lambda}), negative log-likelihood value (\eqn{-LL}),
-  and two estimates of square sum of gradients are shown (see \code{tmp.file}).
+  and two estimates of square sum of gradients are shown (\eqn{process=1}).
 
   The cumulative number of earthquakes at time \eqn{t} since \eqn{t_0} is given by the integration of \eqn{f(t)} with respect to the time \eqn{t},
 
@@ -37,11 +39,10 @@
   where the summation of \eqn{i} is taken for all data event.
 }
 \value{
-  \item{param1}{the 4 parameter values at the initial estimates.}
-  \item{param2}{the 4 parameter values at the final estimates.}
+  \item{param}{the final estimates of the four parameters \eqn{B}, \eqn{K}, \eqn{c} and \eqn{p}.}
   \item{ngmle}{negative max likelihood.}
   \item{aic}{AIC = -2\eqn{LL} + 2*(number of variables), and the number=4 in this case.}
-  \item{param}{list of parameters \eqn{t_i}, \eqn{K}, \eqn{c}, \eqn{p} and \eqn{cls}.}
+  \item{plist}{list of parameters \eqn{t_i}, \eqn{K}, \eqn{c}, \eqn{p} and \eqn{cls}.}
 }
 \references{
   Y.Ogata (2006)

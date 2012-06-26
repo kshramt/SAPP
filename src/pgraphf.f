@@ -3,7 +3,7 @@ cc      program pgraph
      & xtau,y,kn,xl,xx,ydev,ui,cum,sui,xp,xrate,dlt,xtime,yvar,sigma,k,
      & ier)
 c
-      include 'sapp.h'
+      include 'sapp_f.h'
 c
 c     this provides the following several graphical outputs for the
 c     point process data set:
@@ -67,7 +67,7 @@ cc      real*8 ax(20),ay(20),ac(20),at(20),xx(3000),yy(3000),ymg(3000)
       dimension xmg(nn),z(nn)
       dimension x(nn),xtau(2*nn),y(2*nn)
       dimension xl(nn-1),xx(nn-1,6),ui(nn-1),cum(nn-1),sui(nn-1)
-      dimension xrate(ipoint),xp(4)
+      dimension xrate(ipoint+1),xp(4)
       dimension sigma(kmax), erres(kmax),errest(kmax)
       dimension xtime(kmax),yvar(5,kmax),ydev(nn-1)
 c
@@ -113,7 +113,6 @@ cc      call vtcprt(sigma,k,delta*nn/tt,nn,float(nn),erres,errest)
      & yvar)
    20 continue
 c  ---------------------------------------------
-cc      stop
       return
       end
 cc      subroutine count1(z,nn,h,nfunct,xmg,xmgmax,xt,inn,tm)
@@ -335,7 +334,7 @@ cc      subroutine palmpr(x,n,t,t1,n1)
       subroutine palmpr(x,n,t,t1,n1,xp,xx,dlt)
 cc      dimension x(1),xx(1000),p(4)
       implicit real * 8 (a-h,o-z)
-      dimension x(1),xx(n1),p(4)
+      dimension x(1),xx(n1+1),p(4)
       character*1 xl(101),xmi,xii,xtt,xst,bl
       dimension xp(4)
       data p/-2.57583,-1.95996,1.95996,2.57583/
@@ -522,7 +521,7 @@ c-----
       amean(k)=sigm1(k)/a(k)
       sigc0(k)=sigm2(k)-amean(k)*sigm1(k)
       r=k4
-      ak(k)=3*a (k)/(3*a(k)*(a(k)-r)+r**2-1)
+      ak(k)=3*a(k)/(3*a(k)*(a(k)-r)+r**2-1)
       avar(k)=ak(k)*sigc0(k)
       sigma(k)=avar(k)
       erres(k)=r*delta*rmd/(3*a(k))*(4*r**2*delta*rmd+3*r+2*delta*rmd)

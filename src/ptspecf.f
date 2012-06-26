@@ -2,7 +2,7 @@ cc      program ptspec
       subroutine ptspecf(t,n,t0,tmpr,tmp,prd,nh,nt,is,prb,r1,rwx,rwy,
      & phs,wt,ht,w,h,g)
 c
-      include 'sapp.h'
+      include 'sapp_f.h'
 c
 c     this program provides perodgrams of point process data with
 c     the significant bands ( 0.90, 0.95 and 0.99 ) assuming the
@@ -62,7 +62,6 @@ c-----
 cc      isw1=2
 cc      call printr(nh1,w,s,g,nt,wt,ht,t0,tmp,isw1)
    20 continue
-cc      stop
       return
       end
       subroutine period(h,g,w,n,t,nh1,ht,gt,wt,nt,rpt,t0,pi2,tmpr)

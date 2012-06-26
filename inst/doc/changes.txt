@@ -6,6 +6,22 @@
              *******************************
 
 
+  SAPP_1.0.2
+ ============
+ * Fixed a bug in momori().
+   In subroutine sizes, the size of the array "ti" in the declaration is unsuitable.
+
+  (Reported by Brian Ripley)
+
+ * Fixed a bug in pgraph().
+   In subroutine palmpr, the size of the array "xx" in the declaration is unsuitable.
+
+ * Add C wrapper functions to call Fortran subroutines.
+
+ * Write to "tmpfile" in R function (eptren(), linlin(), etasap() and momori()) insted of in Fortran subroutine.
+   Add "nlmax" to arguments of function eptren(), linlin(), etasap() and momori().
+
+
   SAPP_1.0.1
  ============
  * Delete an extra line with the unterminated string at the end of the file SAPP/data/res2003JUL26.R.

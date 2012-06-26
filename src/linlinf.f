@@ -1,8 +1,8 @@
 cc     program linlin
       subroutine linlinf(n,x,iopt,t,nn,mm,xx,yy,kkx,kky,kmax,kkc,kkt,
-     & x1,x2,aic,f,prb,r1,rwx,rwy,phs,tmp)
+     & nlmax,x1,x2,aic,f,prb,r1,rwx,rwy,phs,px,pg,id,rmd,ee,nl,ier)
 c
-      include 'sapp.h'
+      include 'sapp_f.h'
 c
 c     this program performs the maximum likelihood estimates of linear
 c  intensity models of self-exciting point process with another point
@@ -58,30 +58,12 @@ cc      dimension x(50)
 cc      dimension lf(51,51)
       dimension lf(kmax,kmax)
 c
-      integer*1  tmp(1)
-      character cname*80
+      dimension px(n,5),pg(n,5)
+      dimension id(nlmax),rmd(nlmax),ee(nlmax)
 c
-      lu=3
-      do 5 i = 1,80
-    5 cname(i:i) = ' '
-      ic = 0
-      ifg = 0
-      if ( tmp(1).ne.ichar(' ') ) then
-      do 6 i = 1,80
-         if ( tmp(i).ne.ichar(' ') ) then
-            cname(i:i) = char(tmp(i))
-            ic = ic+1
-         end if
-    6 continue
-      end if
-      if ( ic.gt.0 ) then
-         ifg = 1
-         open (lu,file=cname,iostat=ivar)
-         if (ivar .ne. 0) then
-            write(*,*) ' ***  linlin temp FILE OPEN ERROR :',cname,ivar
-            ifg=0
-         end if
-      end if
+      nl = 0
+      do 5 i = 1,nlmax
+    5 id(i) = 0
 c
 cc      call input(n,x)
 cc      call comfac
@@ -96,14 +78,12 @@ cc      call dav(n,x)
 cc      call dav(n,x1,xx,yy,nn,kkx,kky,kkc,kkt,t,mm,iopt,lf,x2,aic,f,xm,
 cc     & lu,ifg)
       call dav(n,x1,xx,yy,nn,kkx,kky,kkc,kkt,t,mm,iopt,kmax,lf,x2,aic,
-     & f,xm,lu,ifg)
-      if (ifg.eq.1) close(lu)
-cc      stop
+     & f,xm,px,pg,id,rmd,ee,nl,nlmax,ier)
       return
       end
 cc      subroutine dav(n,x)
       subroutine dav(n,x1,xx,yy,nn,kkx,kky,kkc,kkt,t,mm,iopt,kmax,lf,
-     & x,aic,f,xm,lu,ifg)
+     & x,aic,f,xm,px,pg,id,rmd,ee,nl,nlmax,ier)
       implicit real * 8 (a-h,o-z)
 cc      external funct
 cc      common t,nn,mm,iopt
@@ -114,6 +94,10 @@ cc      dimension x(50),r(31,31)
       dimension x(n),x1(n),x2(n)
       dimension xx(nn),yy(nn)
       dimension lf(kmax,kmax)
+c
+      dimension px(n,5),pg(n,5)
+      dimension id(nlmax),rmd(nlmax),ee(nlmax)
+c
       if(n.eq.1) go to 100
       x(1)=sqrt(x(1))
       x(2)=sqrt(x(2))
@@ -137,7 +121,8 @@ cc      write(6,1020) n,(x(i),i=1,n)
 c----------------------------------
 cc      call davidn(x,n,0,funct)
       call davidn( x,n,0,xx,yy,nn,kkx,kky,kkc,kkt,mm,iopt,kmax,lf,
-     & t,f,xm,lu,ifg )
+     & t,f,xm,px(1,ii),pg(1,ii),id,rmd,ee,nl,nlmax,ier)
+      if( ier.eq.-1 ) return
 c----------------------------------
    30 continue
 c
@@ -192,7 +177,7 @@ cc      write(6,1001) aic
       end
 cc      subroutine  linear( x,h,ram,ee,k,ig,funct )
       subroutine  linear( x,h,ram,f,ee,k,ig,xx,yy,t,nn,mm,iopt,ff,kkx,
-     & kky,kkc,kkt,kmax,lf,lu,jfg )
+     & kky,kkc,kkt,kmax,lf,id,rmd,eee,nl,nlmax )
 c
 c     this subroutine performs the linear search along the direction
 c     specified by the vector h
@@ -225,6 +210,8 @@ cc      external funct
 cc      dimension  lf(51,51)
       dimension  lf(kmax,kmax)
 c
+      dimension  rmd(nlmax), eee(nlmax), id(nlmax)
+c
       isw = 1
       ipr = 7
       if( ram .le. 1.0d-30 )  ram = 0.01d0
@@ -243,8 +230,14 @@ c
 cc      call  funct( k,x1,e2,g,ig )
       call funct(k,x1,e2,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
      & kkc,kkt,kmax,lf)
+      if( ig.eq.-1 ) return
 cc      if(ipr.ge.7)  write(6,2)  ram2,e2
-      if( jfg.eq.1 )  write(lu,2) ram2,e2
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 2
+         rmd(nl) = ram2
+         eee(nl) = e2
+      end if
 c
       if( ig .eq. 1 )  go to  50
       if( e2 .gt. e1 )  go to 50
@@ -254,9 +247,15 @@ c
 cc      call  funct( k,x1,e3,g,ig )
       call funct(k,x1,e3,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
      & kkc,kkt,kmax,lf)
+      if( ig.eq.-1 ) return
       if( ig.eq.1 )  go to  500
 cc      if( ipr.ge.7 )  write(6,3)  ram3,e3
-      if( jfg.eq.1 )  write(lu,3)  ram3,e3
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 3
+         rmd(nl) = ram3
+         eee(nl) = e3
+      end if
       if( e3 .gt. e2 )  go to 70
       ram1 = ram2
       ram2 = ram3
@@ -273,8 +272,14 @@ c
 cc      call  funct( k,x1,e2,g,ig )
       call funct(k,x1,e2,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
      & kkc,kkt,kmax,lf)
+      if( ig.eq.-1 ) return
 cc      if(ipr.ge.7)  write(6,4)  ram2,e2
-      if( jfg.eq.1 )  write(lu,4)  ram2,e2
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 4
+         rmd(nl) = ram2
+         eee(nl) = e2
+      end if
       if( e2.gt.e1 )  go to 50
 c
 cc   70 assign 80 to return
@@ -286,8 +291,14 @@ c
 cc      call  funct( k,x1,ee,g,ig )
       call funct(k,x1,ee,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
      & kkc,kkt,kmax,lf)
+      if( ig.eq.-1 ) return
 cc      if(ipr.ge.7)  write(6,5)  ram,ee
-      if(jfg.eq.1)  write(lu,5)  ram,ee
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 5
+         rmd(nl) = ram
+         eee(nl) = ee
+      end if
 c
       ifg = 0
 cc      assign  300 to  sub
@@ -331,8 +342,14 @@ c
 cc      call  funct( k,x1,ee,g,ig )
       call funct(k,x1,ee,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
      & kkc,kkt,kmax,lf)
+      if( ig.eq.-1 ) return
 cc      if( ipr.ge.7 )  write(6,6)  ram,ee
-      if( jfg.eq.1 )  write(lu,6)  ram,ee
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 6
+         rmd(nl) = ram
+         eee(nl) = ee
+      end if
 cc      assign 200 to sub
       sub = 200
       ifg = ifg+1
@@ -382,8 +399,14 @@ c
 cc      call  funct( k,x1,e3,g,ig )
       call funct(k,x1,e3,g,ig,xx,yy,t,nn,mm,iopt,ff,kkx,kky,
      & kkc,kkt,kmax,lf)
+      if( ig.eq.-1 ) return
 cc      if( ipr.ge.7 )  write(6,7)  ram,e3
-      if( jfg.eq.1 )  write(lu,7)  ram3,e3
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 7
+         rmd(nl) = ram3
+         eee(nl) = e3
+      end if
       if( ig.eq.1 )  go to 540
       if( e3.gt.e2 )  go to 530
       ram1 = ram2
@@ -409,7 +432,7 @@ c ------------------------------------------------------------
       e n d
 cc      subroutine  davidn( x,n,ihes,funct )
       subroutine  davidn( x,n,ihes,xx,yy,nn,kkx,kky,kkc,kkt,mm,iopt,
-     & kmax,lf,t,f,xm,lu,ifg )
+     & kmax,lf,t,f,xm,px,g,id,rmd,ee,nl,nlmax,ig )
 c
 c     minimization by davidon-fletcher-powell procedure
 c     this subroutine is copied from timsac 78.
@@ -439,6 +462,10 @@ cc      dimension  r(31,31)
       dimension  lf(kmax,kmax)
       common     / ccc /  isw,ipr
 cc      common     / ddd /  r , f , aic , sd
+c
+      dimension  px(n)
+      dimension  id(nlmax), rmd(nlmax), ee(nlmax)
+c
 cc      external funct
       data  tau1 , tau2  /  1.0d-5 , 1.0d-5  /
       data  eps1 , eps2  / 1.0d-5 , 1.0d-5  /
@@ -458,9 +485,15 @@ c
 cc      call  funct( n,x,xm,g,ig )
       call funct(n,x,xm,g,ig,xx,yy,t,nn,mm,iopt,f,kkx,kky,
      & kkc,kkt,kmax,lf)
+      if( ig.eq.-1 ) return
 c
 cc      write( 6,340 )     xm
-      if( ifg.eq.1 )  write( lu,340 )     xm
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 340
+         rmd(nl) = xm
+         ee(nl) = 0
+      end if
 c
 c          inverse of hessian computation (if available)
 c
@@ -542,10 +575,16 @@ c          linear  search
 c
 cc      call  linear( x,s,ramda,ed,n,ig,funct )
       call  linear( x,s,ramda,f,ed,n,ig,xx,yy,t,nn,mm,iopt,f,kkx,
-     & kky,kkc,kkt,kmax,lf,lu,ifg )
+     & kky,kkc,kkt,kmax,lf,id,rmd,ee,nl,nlmax )
+      if( ig.eq.-1 ) return
 c
 cc      write( 6,330 )     ramda , f
-      if( ifg.eq.1 )  write( lu,330 )     ramda , f
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 330
+         rmd(nl) = ramda
+         ee(nl) = f
+      end if
 c
       s1 = 0.0d00
       do  210   i=1,n
@@ -559,6 +598,7 @@ c
 cc      call  funct( n,x,xm,g,ig )
       call funct(n,x,xm,g,ig,xx,yy,t,nn,mm,iopt,f,kkx,kky,
      & kkc,kkt,kmax,lf)
+      if( ig.eq.-1 ) return
 c
       s2 = 0.d0
       do  220     i=1,n
@@ -573,11 +613,11 @@ cc      write( 6,600 )
 cc      write( 6,610 )     (x(i),i=1,n)
 cc      write( 6,601 )
 cc      write( 6,610 )     (g(i),i=1,n)
-      if( ifg.eq.1 )  then
-         write( lu,600 )
-         write( lu,610 )     (x(i),i=1,n)
-         write( lu,601 )
-         write( lu,610 )     (g(i),i=1,n)
+      do 910 i=1,n
+  910 px(i) = x(i)
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = -1
       end if
       return
   330 format( 1h ,'lambda =',d15.7,5x,'log likelihood =',d18.10)
@@ -619,7 +659,8 @@ cc      dimension dei(50)
 cc      write(6,4) kk2,kkx,kky,kkc,kkt
     4 format(1h ,'n or kkx or kky kkc kkt error',5i10)
       ifg=-1
-      stop
+cc      stop
+      return
     5 ifg=0
       ix=1
       wop=b(kkx+kky+kkc+3)**2

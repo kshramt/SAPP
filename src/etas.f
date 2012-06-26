@@ -1,8 +1,8 @@
 cc      program etasap
       subroutine etasapf(xx,xmg,nd,xmag0,amx1,xini,n,zts,zte,
-     &                   tstart0,nfunct0,iappr0,f,x,aic2,tmp)
+     &  tstart0,nfunct0,iappr0,f,x,g,aic2,id,ee,xx1,nl,nlmax)
 c
-      include 'sapp.h'
+      include 'sapp_f.h'
 c-----------------------------------------------------------------------
 c Maximum likelihood procedure for the ETAS point process model.
 c Subroutine FUNC4 corresponds to the exact likelihood and FUNC9 to the
@@ -25,32 +25,12 @@ cc      common/param/xini(npara),n
       common /kkxy/kkx,kky,kkt
       common t,nn,mm,iappr,nfunct
 c
-      dimension  x(n)
-      integer*1  tmp(1)
-      character cname*80
+      dimension  x(n), g(n)
+      dimension id(nlmax),ee(nlmax),xx1(n,nlmax)
 c
-      lu=3
-      ic = 0
-      ifg = 0
-      do 30 i = 1,80
-         cname(i:i)=' '
-   30 continue
-      if ( tmp(1).ne.ichar(' ') ) then
-      do 31 i = 1,80
-         if ( tmp(i).ne.ichar(' ') ) then
-            cname(i:i) = char(tmp(i))
-            ic = ic+1
-         end if
-   31 continue
-      end if
-      if ( ic.gt.0 ) then
-         ifg = 1
-         open (lu,file=cname,iostat=ivar)
-         if (ivar .ne. 0) then
-            write(*,*) ' ***  etas temp FILE OPEN ERROR :',cname,ivar
-            ifg=0
-         end if
-      end if
+      nl = 0
+      do 30 i = 1,nlmax
+   30 id(i) = 0
 c
 cc      call input
       call input(xx,xmg,nd,xmag0,amx1,xini,n,zts,zte,tstart0,
@@ -72,10 +52,9 @@ cc      write(6,5) xmag0
     1 format(8f10.2)
 c
 cc      call finout
-      call finout(xx,xmg,xmag0,nn,xini,n,f,x,aic2,lu,ifg)
+      call finout(xx,xmg,xmag0,nn,xini,n,f,x,g,aic2,id,ee,xx1,nl,nlmax)
 c
    20 continue
-cc      stop
       return
       end
 c***********************************************************************
@@ -160,7 +139,8 @@ cc      write(6,*)  nd, nn, ntstar, bvl, amct
       end
 c***********************************************************************
 cc      subroutine finout
-      subroutine finout(xx,xmg,xmag0,ldata,xini,n,ff,x,aic20,lu,ifg)
+      subroutine finout(xx,xmg,xmag0,ldata,xini,n,ff,x,g,aic20,
+     &   id,ee,x1,nl,nlmax)
       implicit real * 8 (a-h,o-z)
 cc      parameter(ldata=17777,npara=5)
 cc      external func4,func9
@@ -174,6 +154,8 @@ cc      common/param/xini(npara),n
       common /kkxy/kkx,kky,kkt
 cc      dimension x(npara)
       dimension x(n)
+c
+      dimension  g(n), id(nlmax), ee(nlmax), x1(n,nlmax)
 c
       do 10 i=1,nn
    10 xmg(i)=xmg(i)-xmag0
@@ -190,8 +172,10 @@ c
 c
 cc      if(nfunct.eq.4) call davidn(x,n,4,func4)
 cc      if(nfunct.eq.9) call davidn(x,n,9,func9)
-      if(nfunct.eq.4) call davidn4(xx,xmg,ldata,x,n,4,func4,lu,ifg)
-      if(nfunct.eq.9) call davidn4(xx,xmg,ldata,x,n,9,func91,lu,ifg)
+      if(nfunct.eq.4)
+     &       call davidn9(xx,xmg,ldata,x,n,4,func4,g,id,ee,x1,nl,nlmax)
+      if(nfunct.eq.9)
+     &       call davidn9(xx,xmg,ldata,x,n,9,func91,g,id,ee,x1,nl,nlmax)
 c
    30 continue
 c
@@ -218,7 +202,8 @@ cc      write(6,1001) aic2
       end
 c***********************************************************************
 cc      subroutine  davidn( x,n,ihes,funct )
-      subroutine  davidn4( xx,xmg,nn,x,n,ihes,funct,lu,ifg)
+      subroutine  davidn9( xx,xmg,nn,x,n,ihes,funct,
+     &                          g,id,ee,xx1,nl,nlmax)
 c
 c          minimization by davidon-fletcher-powell procedure
 c
@@ -242,6 +227,7 @@ cc      dimension  h(npara,npara) , wrk(npara) , s(npara)
       dimension  h(n,n) , wrk(n) , s(n)
 c
       dimension  xx(nn) , xmg(nn)
+      dimension  id(nlmax), ee(nlmax), xx1(n,nlmax)
 c
       common /ccc/ isw,ipr
       common /ddd/ f,aic2
@@ -269,7 +255,11 @@ cc      call  funct( n,x,xm,g,ig )
       call funct( xx,xmg,nn,n,x,xm,g,ig )
 c
 cc      write( 6,340 )     xm
-       if( ifg.eq.1 ) write( lu,340 )     xm  
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 340
+         xx1(1,nl) = xm
+      end if
 c
       icc = 0
 c      iteration
@@ -346,10 +336,19 @@ c
 c          linear  search
 c
 cc      call  linear( x,s,ramda,ed,n,ig,funct )
-      call  linear4( xx,xmg,nn,x,s,ramda,ed,n,ig,funct,lu,ifg )
+cx      call  linear9( xx,xmg,nn,x,s,ramda,ed,n,ig,funct,lu,ifg )
+      call  linear9( xx,xmg,nn,x,s,ramda,ed,n,ig,funct,
+     &                id,ee,xx1,nl,nlmax )
 c
 cc      write( 6,330 )     ramda , ed , s1 , s2
-      if( ifg.eq.1 ) write( lu,330 )     ramda , ed , s1 , s2
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 330
+         ee(nl) = ramda
+         xx1(1,nl) = ed
+         xx1(2,nl) = s1
+         xx1(3,nl) = s2
+      end if
 c
       s1 = 0.0d00
       do  210   i=1,n
@@ -376,12 +375,10 @@ cc      write( 6,600 )
 cc      write( 6,610 )     (x(i)**2,i=1,n)
 cc      write( 6,601 )
 cc      write( 6,610 )     (g(i)**2,i=1,n)
-      if( ifg.eq.1 ) then
-         write( lu,600 )
-         write( lu,610 )     (x(i)**2,i=1,n)
-         write( lu,601 )
-         write( lu,610 )     (g(i)**2,i=1,n)
-      end if
+         if( nl.lt.nlmax ) then
+            nl = nl+1
+            id(nl) = 600
+         end if
       return
   330 format( 1h ,'lambda =',d15.7,5x,'-LL =',d23.15,2x,d9.2,2x,d9.2)
   340 format( 1h ,4x,'initial (-1)*Log-Likelihood =',d23.15)
@@ -391,7 +388,8 @@ cc      write( 6,610 )     (g(i)**2,i=1,n)
       end
 c***********************************************************************
 cc      subroutine  linear( x,h,ram,ee,k,ig,funct )
-      subroutine  linear4( xx,xmg,nn,x,h,ram,ee,k,ig,funct,lu,jpr )
+      subroutine  linear9( xx,xmg,nn,x,h,ram,ee,k,ig,funct,
+     &                         id,eee,xx1,nl,nlmax )
 c
 c     this subroutine performs the linear search along the direction spe
 c     by the vector h
@@ -420,6 +418,7 @@ cc      dimension  g(npara)
       dimension  g(k)
       common /ccc/ isw,ipr
       dimension  xx(nn) , xmg(nn)
+      dimension  id(nlmax), eee(nlmax), xx1(k,nlmax)
 c
       isw = 1
       ipr=7
@@ -440,7 +439,14 @@ cc      call  funct( k,x1,e2,g,ig )
       call  funct( xx,xmg,nn,k,x1,e2,g,ig )
 c     if(ipr.ge.7)  write(6,2)  ram2,e2
 cc      if(ipr.ge.7)  write(6,8)  e2,(x1(i)**2,i=1,k)
-      if( jpr.eq.1 )  write(lu,8)  e2,(x1(i)**2,i=1,k)
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         eee(nl) = e2
+         do 21 i=1,k
+   21    xx1(i,nl) = x1(i)
+      end if
+
     8 format(' -ll=',d13.5,1x,5d12.5)
 c
       if( ig .eq. 1 )  go to  50
@@ -453,7 +459,13 @@ cc      call  funct( k,x1,e3,g,ig )
       if( ig.eq.1 )  go to  500
 c     if( ipr.ge.7 )  write(6,3)  ram3,e3
 cc      if(ipr.ge.7)  write(6,8)  e3,(x1(i)**2,i=1,k)
-      if( jpr.eq.1 )  write(lu,8)  e3,(x1(i)**2,i=1,k)
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         eee(nl) = e3
+         do 41 i=1,k
+   41    xx1(i,nl) = x1(i)
+      end if
       if( e3 .gt. e2 )  go to 70
       ram1 = ram2
       ram2 = ram3
@@ -471,7 +483,14 @@ cc      call  funct( k,x1,e2,g,ig )
       call  funct( xx,xmg,nn,k,x1,e2,g,ig )
 c     if(ipr.ge.7)  write(6,4)  ram2,e2
 cc      if(ipr.ge.7)  write(6,8)  e2,(x1(i)**2,i=1,k)
-      if( jpr.eq.1 )  write(lu,8)  e2,(x1(i)**2,i=1,k)
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         eee(nl) = e2
+         do 61 i=1,k
+   61    xx1(i,nl) = x1(i)
+      end if
+
       if( e2.gt.e1 )  go to 50
 c
 cc   70 assign 80 to return
@@ -484,7 +503,14 @@ cc      call  funct( k,x1,ee,g,ig )
       call  funct( xx,xmg,nn,k,x1,ee,g,ig )
 c     if(ipr.ge.7)  write(6,5)  ram,ee
 cc      if(ipr.ge.7)  write(6,8)  ee,(x1(i)**2,i=1,k)
-      if( jpr.eq.1 )  write(lu,8)  ee,(x1(i)**2,i=1,k)
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         eee(nl) = ee
+         do 91 i=1,k
+   91    xx1(i,nl) = x1(i)
+      end if
+
 c
       ifg = 0
 cc      assign  300 to  sub
@@ -529,7 +555,13 @@ cc      call  funct( k,x1,ee,g,ig )
       call  funct( xx,xmg,nn,k,x1,ee,g,ig )
 c     if( ipr.ge.7 )  write(6,6)  ram,ee
 cc      if(ipr.ge.7)  write(6,8)  ee,(x1(i)**2,i=1,k)
-      if( jpr.eq.1 )  write(lu,8)  ee,(x1(i)**2,i=1,k)
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         eee(nl) = ee
+         do 141 i=1,k
+  141    xx1(i,nl) = x1(i)
+      end if
 cc      assign 200 to sub
       sub = 200
       ifg = ifg+1
@@ -580,7 +612,14 @@ cc      call  funct( k,x1,e3,g,ig )
       call  funct( xx,xmg,nn,k,x1,e3,g,ig )
 c     if( ipr.ge.7 )  write(6,7)  ram,e3
 cc      if(ipr.ge.7)  write(6,8)  e3,(x1(i)**2,i=1,k)
-      if( jpr.eq.1 )  write(lu,8)  e3,(x1(i)**2,i=1,k)
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         eee(nl) = e3
+         do 521 i=1,k
+  521    xx1(i,nl) = x1(i)
+      end if
+
       if( ig.eq.1 )  go to 540
       if( e3.gt.e2 )  go to 530
       ram1 = ram2
@@ -876,8 +915,8 @@ c the folloings are not redundant: consider the case where i=1.
       if(xx(i).eq.0.0.and.i.eq.1) go to 10
       if(i.eq.1) go to 10
       if (a4*xmg(i-1).gt.170) go to 50
-      if (a4*xmg(i-1).gt.170) write(6,*) ' go to 50'
-      if (xx(i)-xx(i-1).lt.0.0) write(6,*) 'reverse',i,xx(i),xmg(i)
+cx      if (a4*xmg(i-1).gt.170) write(6,*) ' go to 50'
+cx      if (xx(i)-xx(i-1).lt.0.0) write(6,*) 'reverse',i,xx(i),xmg(i)
 c
       ci0=exp(-xi0/a3*(xx(i)-xx(i-1)))*
      &    (ci0+xi0/a3**2*(xx(i)-xx(i-1))*(fi0+exp(a4*xmg(i-1))))

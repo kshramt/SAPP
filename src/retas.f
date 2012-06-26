@@ -13,7 +13,7 @@ c     Ogata, Y., Matsu'ura S.R., Katsura, K. (1993). submitted to
 c                Geophys. Res. Letters.
 c-----------------------------------------------------------------------
 c
-      include 'sapp.h'
+      include 'sapp_f.h'
 c
       implicit real * 8 (a-h,o-z)
 cc      parameter(ldata=17777, npara=5)
@@ -53,7 +53,6 @@ cc      call residual
       call eresidual(xx,xmg,xmag0,nn,xini,n,t,tstart,ntstar,x)
 c
    20 continue
-cc      stop
       return
       end
 c***********************************************************************

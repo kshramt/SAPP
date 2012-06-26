@@ -5,8 +5,7 @@
   Compute the maximum likelihood estimates of intensity rates of either exponential polynomial or exponential Fourier series of non-stationary Poisson process models.
 }
 \usage{
-eptren(data, mag=NULL, threshold=0.0, nparam, nsub, cycle=0, tmp.file=NULL, 
-       plot=TRUE)
+eptren(data, mag=NULL, threshold=0.0, nparam, nsub, cycle=0, tmpfile=NULL, nlmax=1000, plot=TRUE)
 }
 \arguments{
   \item{data}{point process data.}
@@ -15,7 +14,9 @@ eptren(data, mag=NULL, threshold=0.0, nparam, nsub, cycle=0, tmp.file=NULL,
   \item{nparam}{maximum number of parameters.}
   \item{nsub}{number of subdivisions in either (0,\eqn{t}) or (0,\eqn{cycle}), where \eqn{t} is the length of observed time interval of points.}
   \item{cycle}{periodicity to be investigated days in a Poisson process model. If zero (default) fit an exponential polynomial model.}
-  \item{tmp.file}{temporary file name. If NULL (default) output no file, otherwise output \eqn{lambda} and \eqn{log-likelihood}.}
+  \item{tmpfile}{write the process of minimizing by davidon-fletcher-powell procedure to \eqn{tmpfile}.
+                 If "" print the process to the standard output and if NULL (default) no report.}
+  \item{nlmax}{the maximum number of steps in the process of minimizing.} 
   \item{plot}{logical. If TRUE (default) intensity rates are plotted.}
 }
 \details{

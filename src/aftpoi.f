@@ -1,8 +1,9 @@
 c--------------------------------------------------------------------
 c83-11-11-15:06:19/87-03-25-10:21 nhpossn fort 
 cc      program momori
-      subroutine momorif(xx,nni,xini,np,zts,zte,tstart,nc,nfuncti,ff,
-     &                   x,pa,ahaic,t00,ti,ak,c,p,cls,tmp)
+      subroutine momorif(xx,nni,xini,np,zts,zte,tstart,nc,nfuncti,
+     & ff,x,g,pa,ahaic,t00,ti,ak,c,p,cls, id,rmd,xx1,h,hf,nl,nlmax)
+
 c-----------------------------------------------------------------------
 c     this program performs the maximum likelihood calculation and 
 c     estimate of the parameters of modified omori formula assuming 
@@ -19,7 +20,7 @@ c     this program is desined by y.ogata and programed by y.ogata and
 c     k.katsura.  see ogata (1983; j.p.e., vol.31,pp.115-124). 
 c----------------------------------------------------------------------- 
 c
-      include 'sapp.h'
+      include 'sapp_f.h'
 c
       implicit real * 8 (a-h,o-z) 
 cc      real*4 time 
@@ -29,38 +30,19 @@ cc      common/y/y(50)
       common/range/t0,t1,t2,t3
 cc      dimension xxxx(50),x(50),ahaic(30) 
 cc      dimension axxx(19999),amag(19999)
-      dimension x(np),pa(np),ahaic(nc)
-      dimension xx(nni),xini(np+1),ti(np/3)
-      dimension ak(np/3),c(np/3),p(np/3),cls(np/3) 
-      integer*1  tmp(1)
-      character cname*80
+      dimension x(np,2),pa(np),ahaic(nc),g(np,2)
+      dimension xx(nni),xini(np+1),ti((np-1)/3)
+      dimension ak((np-1)/3),c((np-1)/3),p((np-1)/3),cls((np-1)/3) 
+      dimension id(nlmax), rmd(nlmax), xx1(np,nlmax)
+      dimension h(np,np,2), hf(np,np,2,2)
 c
       nn=nni
       nfunct=nfuncti
 c
-      lu=3
-      ic = 0
-      ifg = 0
-      do 5 i = 1,80
-         cname(i:i)=' '
-    5 continue
-      if ( tmp(1).ne.ichar(' ') ) then
-      do 6 i = 1,80
-         if ( tmp(i).ne.ichar(' ') ) then
-            cname(i:i) = char(tmp(i))
-            ic = ic+1
-         end if
-    6 continue
-      end if
-      if ( ic.gt.0 ) then
-         ifg = 1
-         open (lu,file=cname,iostat=ivar)
-         if (ivar .ne. 0) then
-            write(*,*) ' ***  momori temp FILE OPEN ERROR :',cname,ivar
-            ifg=0
-         end if
-      end if
-c 
+      nl = 0
+      do 5 i = 1,nlmax
+    5 id(i) = 0
+c
 cc      call input(nnnn,axxx,amag)
       t=zte-zts
       if(nfunct.lt.6) go to 155 
@@ -81,8 +63,9 @@ cc      call dav(nnn,x,ahaic)
 cc      call output(nnn,x,ahaic)
 cc      if(nfunct.ne.5) call sizes(nnn,x)
       call repara(xini,np+1,ijkl,nnn,x)
-      call dav3(nni,xx,nnn,x,nc,ahaic,pa,lu,ifg)
-      call output3(nnn,pa,nc,ahaic,ff)
+      call dav6(nni,xx,nnn,x,g,nc,ahaic,pa,
+     &  id,rmd,xx1,h,hf(1,1,1,1),hf(1,1,1,2),nl,nlmax)
+      call output6(nnn,pa,nc,ahaic,ff)
       kn=(nnn-1)/3
       if(nfunct.ne.5) call sizes(nnn,pa,kn,t00,ti,ak,c,p,cls) 
 c     call clock(time) 
@@ -90,8 +73,6 @@ c      write(6,9752) time
  9752 format(1h ,'time= ',f10.3) 
  9753 continue 
  9754 continue 
-cc      stop
-      close(lu)
       return 
       end 
 cc      subroutine repara(ijkl,nnn,xxxx,x)
@@ -126,7 +107,9 @@ c
 c 
 c 
 cc      subroutine dav(n,x,ahaic)
-      subroutine dav3(nni,xx,n,x0,ncount,ahaic,x,lu,ifg) 
+      subroutine dav6(nni,xx,n,x0,g,ncount,ahaic,x,
+     &                     id,rmd,xx1,h,hf,hfi,nl,nlmax)
+
       implicit real * 8 (a-h,o-z) 
       external func5,func6,func9,func10 
       common t,nn,nfunct 
@@ -134,12 +117,15 @@ cc      subroutine dav(n,x,ahaic)
 cc      common/y/y(50) 
       common/ddd/f,aic 
 cc      dimension x(50),ahaic(30)
-      dimension x0(n),x(n),ahaic(ncount),xx(nni)
+      dimension x(n),ahaic(ncount)
+      dimension xx(nni), x0(n,2), g(n,2)
+      dimension  id(nlmax), rmd(nlmax), xx1(n,nlmax)
+      dimension  h(n,n,2), hf(n,n,2), hfi(n,n,2)
 c
 cc      write(6,1020) n 
 cc      write(6,1030)  (x(i),i=1,n)
       do 20 ii=1,n
-      x(ii)=x0(ii)
+      x(ii)=x0(ii,1)
    20 continue
       if(nfunct.eq.5) mm=3 
       if(nfunct.eq.6) mm=4 
@@ -151,10 +137,16 @@ cc      if(nfunct.eq.5) call davidn(x,n,0,func5)
 cc      if(nfunct.eq.6) call davidn(x,n,0,func6) 
 cc      if(nfunct.eq.9) call davidn(x,n,0,func9) 
 cc      if(nfunct.eq.10) call davidn(x,n,0,func10) 
-      if(nfunct.eq.5) call davidn3(xx,nni,x,n,mm,0,func5,lu,ifg) 
-      if(nfunct.eq.6) call davidn3(xx,nni,x,n,mm,0,func6,lu,ifg) 
-      if(nfunct.eq.9) call davidn3(xx,nni,x,n,mm,0,func9,lu,ifg) 
-      if(nfunct.eq.10) call davidn3(xx,nni,x,n,mm,0,func10,lu,ifg) 
+      if(nfunct.eq.5) call davidn6(xx,nni,x,n,mm,0,func5,g(1,ii),
+     &          id,rmd,xx1,h(1,1,ii),hf(1,1,ii),hfi(1,1,ii),nl,nlmax)
+      if(nfunct.eq.6) call davidn6(xx,nni,x,n,mm,0,func6,g(1,ii),
+     &          id,rmd,xx1,h(1,1,ii),hf(1,1,ii),hfi(1,1,ii),nl,nlmax)
+      if(nfunct.eq.9) call davidn6(xx,nni,x,n,mm,0,func9,g(1,ii),
+     &          id,rmd,xx1,h(1,1,ii),hf(1,1,ii),hfi(1,1,ii),nl,nlmax)
+      if(nfunct.eq.10) call davidn6(xx,nni,x,n,mm,0,func10,g(1,ii),
+     &          id,rmd,xx1,h(1,1,ii),hf(1,1,ii),hfi(1,1,ii),nl,nlmax)
+      do 25 jj=1,n
+   25   x0(jj,ii) = x(jj)
    30 continue 
    80 continue 
       ahaic(1)=aic 
@@ -163,7 +155,7 @@ cc      if(nfunct.eq.10) call davidn(x,n,0,func10)
  1030 format(1h ,                   5x,'x=',6e16.7) 
       end 
 cc      subroutine output(n,x,ahaic)
-      subroutine output3(n,x,ncount,ahaic,ff)
+      subroutine output6(n,x,ncount,ahaic,ff)
       implicit real * 8 (a-h,o-z) 
       common t,nn,nfunct 
       common/range/t0,t1,t2,t3 
@@ -201,7 +193,8 @@ cc  110 continue
  1070 format(1h ,'  c = ',e25.15) 
       end 
 cc      subroutine  linear( x,h,ram,ee,k,ig,funct ) 
-      subroutine  linear3( xx,nn,x,h,ram,ee,k,ig,funct,lu,jpr ) 
+      subroutine  linear6( xx,nn,x,h,ram,ee,k,ig,funct,
+     &                         id,rmd,xx1,nl,nlmax)
 c 
 c     this subroutine performs the linear search along the direction spe 
 c     by the vector h 
@@ -224,9 +217,12 @@ c
       integer  return,sub 
 cc      dimension  x(1) , h(1) , x1(50) 
 cc      dimension  g(50)
-      dimension  x(1) , h(1) , x1(k) 
+      dimension  x(1) , h(1) , x1(k)
       dimension  g(k)
       dimension  xx(nn) 
+c
+      dimension id(nlmax),rmd(nlmax),xx1(k,nlmax)
+c
       external funct 
       common     / ccc /  isw , ipr 
 c 
@@ -249,8 +245,14 @@ cc      call  funct( k,x1,e2,g,ig )
       call  funct( nn,xx,k,x1,e2,g,ig ) 
 c     if(ipr.ge.7)  write(6,2)  ram2,e2 
 cc      if(ipr.ge.7)  write(6,8)  ram2,(x1(i)**2,i=1,k) 
-      if( jpr.eq.1 )  write(lu,8)  ram2,(x1(i)**2,i=1,k) 
     8 format(1h ,'-ll=',d13.5,1x,4d12.5) 
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         rmd(nl) = ram2
+         do 21 i=1,k
+   21    xx1(i,nl) = x1(i)
+      end if
 c 
       if( ig .eq. 1 )  go to  50 
       if( e2 .gt. e1 )  go to 50 
@@ -262,7 +264,13 @@ cc      call  funct( k,x1,e3,g,ig )
       if( ig.eq.1 )  go to  500 
 c     if( ipr.ge.7 )  write(6,3)  ram3,e3 
 cc      if(ipr.ge.7)  write(6,8)  ram3,(x1(i)**2,i=1,k) 
-      if( jpr.eq.1 )  write(lu,8)  ram3,(x1(i)**2,i=1,k) 
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         rmd(nl) = ram3
+         do 41 i=1,k
+   41    xx1(i,nl) = x1(i)
+      end if
       if( e3 .gt. e2 )  go to 70 
       ram1 = ram2 
       ram2 = ram3 
@@ -280,11 +288,18 @@ cc      call  funct( k,x1,e2,g,ig )
       call  funct( nn,xx,k,x1,e2,g,ig ) 
 c     if(ipr.ge.7)  write(6,4)  ram2,e2 
 cc      if(ipr.ge.7)  write(6,8)  ram2,(x1(i)**2,i=1,k) 
-      if( jpr.eq.1 )  write(lu,8)  ram2,(x1(i)**2,i=1,k) 
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         rmd(nl) = ram2
+         do 61 i=1,k
+   61    xx1(i,nl) = x1(i)
+      end if
       if( e2.gt.e1 )  go to 50 
 c 
 cc   70 assign 80 to return 
-   70 return = 80
+   70 continue
+      return = 80
       go to 200 
 c 
    80 do 90  i=1,k 
@@ -293,14 +308,22 @@ cc      call  funct( k,x1,ee,g,ig )
       call  funct( nn,xx,k,x1,ee,g,ig ) 
 c     if(ipr.ge.7)  write(6,5)  ram,ee 
 cc      if(ipr.ge.7)  write(6,8)  ram,(x1(i)**2,i=1,k) 
-      if( jpr.eq.1 )  write(lu,8)  ram,(x1(i)**2,i=1,k) 
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         rmd(nl) = ram
+         do 91 i=1,k
+   91    xx1(i,nl) = x1(i)
+      end if
 c 
       ifg = 0 
 cc      assign  300 to  sub 
 cc      assign 200 to sub 
 cc   95 assign 130 to return 
+      sub = 300
       sub = 200 
-   95 return = 130 
+   95  continue
+      return = 130
       if( ram .gt. ram2 )  go to 110 
       if( ee .ge. e2 )  go to 100 
       ram3 = ram2 
@@ -308,29 +331,29 @@ cc   95 assign 130 to return
       e3 =e2 
       e2 =ee 
 cc      go to  sub,( 200,300 ) 
-      if( sub.eq.200 ) go to 200
-      if( sub.eq.300 ) go to 300
+      if( sub .eq. 200 ) go to 200
+      if( sub .eq. 300 ) go to 300
 c 
   100 ram1 = ram 
       e1 = ee 
 cc      go to  sub,( 200,300 ) 
-      if( sub.eq.200 ) go to 200
-      if( sub.eq.300 ) go to 300
+      if( sub .eq. 200 ) go to 200
+      if( sub .eq. 300 ) go to 300
 c 
   110 if( ee .le. e2 )  go to 120 
       ram3 = ram 
       e3 = ee 
 cc      go to  sub,( 200,300 ) 
-      if( sub.eq.200 ) go to 200
-      if( sub.eq.300 ) go to 300
+      if( sub .eq. 200 ) go to 200
+      if( sub .eq. 300 ) go to 300
 c 
   120 ram1 = ram2 
       ram2 = ram 
       e1 = e2 
       e2 = ee 
 cc      go to  sub,( 200,300 ) 
-      if( sub.eq.200 ) go to 200
-      if( sub.eq.300 ) go to 300
+      if( sub .eq. 200 ) go to 200
+      if( sub .eq. 300 ) go to 300
 c 
   130 do 140  i=1,k 
   140 x1(i) = x(i) + ram*h(i)
@@ -338,7 +361,13 @@ cc      call  funct( k,x1,ee,g,ig )
       call  funct( nn,xx,k,x1,ee,g,ig ) 
 c     if( ipr.ge.7 )  write(6,6)  ram,ee 
 cc      if(ipr.ge.7)  write(6,8)  ram,(x1(i)**2,i=1,k) 
-      if( jpr.eq.1 )  write(lu,8)  ram,(x1(i)**2,i=1,k) 
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         rmd(nl) = ram
+         do 141 i=1,k
+  141    xx1(i,nl) = x1(i)
+      end if
 cc      assign 200 to sub 
       sub = 200
       ifg = ifg+1 
@@ -357,8 +386,9 @@ c      -------  internal subroutine sub1  -------
       if( b2 .eq. 0.d0 )  go to 210 
       ram = b1 /b2 
 cc      go to return ,( 80,130 ) 
-      if( return.eq.80 ) go to 80
-      if( return.eq.130 ) go to 130
+      if( return .eq. 80 ) go to 80
+      if( return .eq. 130 ) go to 130
+
 c 
   210 ig = 1 
       ram = ram2 
@@ -369,13 +399,13 @@ c
   300 if( ram3-ram2 .gt. ram2-ram1 )  go to 310 
       ram = (ram1+ram2)*0.5d0 
 cc     go to return ,( 80,130 ) 
-      if( return.eq.80 ) go to 80
-      if( return.eq.130 ) go to 130
+      if( return .eq. 80 ) go to 80
+      if( return .eq. 130 ) go to 130
 c 
   310 ram = (ram2+ram3)*0.5d0 
 cc      go to return ,( 80,130 ) 
-      if( return.eq.80 ) go to 80
-      if( return.eq.130 ) go to 130
+      if( return .eq. 80 ) go to 80
+      if( return .eq. 130 ) go to 130
 c ------------------------------------------------------------ 
 c 
   400 ram = 0.d0 
@@ -389,7 +419,13 @@ cc      call  funct( k,x1,e3,g,ig )
       call  funct( nn,xx,k,x1,e3,g,ig ) 
 c     if( ipr.ge.7 )  write(6,7)  ram,e3 
 cc      if(ipr.ge.7)  write(6,8)  ram,(x1(i)**2,i=1,k) 
-      if( jpr.eq.1 )  write(lu,8)  ram,(x1(i)**2,i=1,k) 
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 8
+         rmd(nl) = ram2
+         do 521 i=1,k
+  521    xx1(i,nl) = x1(i)
+      end if
       if( ig.eq.1 )  go to 540 
       if( e3.gt.e2 )  go to 530 
       ram1 = ram2 
@@ -414,7 +450,8 @@ c ------------------------------------------------------------
     7 format( 1h ,'lambda =',d18.10, 10x,'e7 =',d25.17 ) 
       e n d 
 cc      subroutine  davidn( x,n,ihes,funct )
-      subroutine  davidn3( xx,nni,x,n,m,ihes,funct,lu,ifg ) 
+      subroutine  davidn6( xx,nni,x,n,m,ihes,funct,g,
+     &                          id,rmd,xx1,h,hf,hfi,nl,nlmax)
 c 
 c          minimization by davidon-fletcher-powell procedure 
 c 
@@ -437,11 +474,12 @@ c
 cc      dimension  x(50) , dx(50) , g(50) , g0(50) , y(50) 
 cc      dimension  h(50,50) , wrk(50) , s(50) 
 cc      dimension  ht(50,50),hf(50,50)
-      dimension  x(n) , dx(n) , g(m) , g0(n) , y(n) , b(m) 
+      dimension  x(n) , dx(n) , g(m) , g0(n) , y(n)
       dimension  h(n,n) , wrk(n) , s(n) 
       dimension  hf(n,n)
 c---
-      dimension  xx(nni)
+      dimension  xx(nni), hfi(n,n)
+      dimension  id(nlmax), rmd(nlmax), xx1(n,nlmax) 
 c--- 
       external funct 
       common     / ccc /  isw , ipr 
@@ -462,15 +500,15 @@ c
    20 h(i,i) = 1.0d00 
       isw = 0
 c
-c---
-      do  30   i=1,n
-   30 b(i) = x(i) 
-c---
 cc      call  funct( n,x,xm,g,ig ) 
-      call  funct( nni,xx,m,b,xm,g,ig ) 
+      call  funct( nni,xx,m,x,xm,g,ig ) 
 c 
 cc      write( 6,340 )     xm 
-       if( ifg.eq.1 ) write( lu,340 )     xm  
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 340
+         xx1(1,nl) = xm
+      end if
 c 
 c          inverse of hessian computation (if available) 
 c 
@@ -479,7 +517,7 @@ c
       icc = 0 
 c      iteration 
 11110 continue 
-      icc = icc + 1 
+      icc = icc + 1
       do  11111   ic=1,n 
       if( ic .eq. 1 .and. icc .eq. 1 )  go to 120 
 c 
@@ -551,21 +589,28 @@ c
 c          linear  search 
 c 
 cc      call  linear( x,s,ramda,ed,n,ig,funct ) 
-      call  linear3( xx,nn,b,s,ramda,ed,m,ig,funct,lu,ifg )
+      call  linear6( xx,nn,x,s,ramda,ed,m,ig,funct,id,rmd,xx1,
+     & nl,nlmax)
 cc      write( 6,330 )     ramda , f , s1 , s2 
-      if( ifg.eq.1 ) write( lu,330 )     ramda , f , s1 , s2 
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 330
+         rmd(nl) = ramda
+         xx1(1,nl) = f
+         xx1(2,nl) = s1
+         xx1(3,nl) = s2
+      end if
       s1 = 0.0d00 
       do  210   i=1,n 
       dx(i) = s(i) * ramda 
       s1 = s1 + dx(i) * dx(i) 
       g0(i) = g(i) 
-cc  210 x(i) = x(i) + dx(i) 
-  210 b(i) = b(i) + dx(i) 
+  210 x(i) = x(i) + dx(i) 
       xmb = xm 
       isw = 0 
 c
 cc      call  funct( n,x,xm,g,ig ) 
-      call  funct( nni,xx,m,b,xm,g,ig ) 
+      call  funct( nni,xx,m,x,xm,g,ig ) 
 c 
       s2 = 0.d0 
       do  220     i=1,n 
@@ -596,27 +641,19 @@ cc      write(6,606)
 cc      do 655 i=1,n 
 cc  655 write(6,604) (hf(i,j),j=1,n) 
 c
-      if( ifg.eq.1 ) then
-         write( lu,600 ) 
-         write( lu,610 )     (b(i),i=1,n) 
-         write( lu,601 ) 
-         write( lu,610 )     (g(i),i=1,n) 
-         write(lu,602)
-         do 651 i=1,n
-  651    write(lu,610) (h(i,j),j=1,n) 
-         if(nfunct.eq.6) then
-            call fisher(b,m,hf)
-            write(lu,605) 
-            do 654 i=1,n 
-  654       write(lu,604) (hf(i,j),j=1,n)
-            call invdet(hf,hdet,n,n)
-            write(lu,606) 
-            do 655 i=1,n 
-  655       write(lu,604) (hf(i,j),j=1,n)
-         end if 
+      if( nl.lt.nlmax ) then
+         nl = nl+1
+         id(nl) = 600
       end if
-      do 700 i=1,n
-  700 x(i)=b(i) 
+      if(nfunct.eq.6) then
+         call fisher(x,m,hf)
+         do 654 i=1,n 
+            do 653 j=1,n
+               hfi(i,j) = hf(i,j)
+  653       continue
+  654    continue
+         call invdet(hfi,hdet,n,n)
+      end if 
 c
   602 format(/1h ,'***  estimated inverse hessian  ***') 
   604 format(1h ,8d15.5/(1h ,8d15.5)) 
@@ -1396,11 +1433,12 @@ cc      subroutine sizes(n,x)
       implicit real * 8 (a-h,o-z) 
 cc      dimension x(50),cls(20),ti(20) 
 cc      dimension ak(20),p(20),c(20) 
-      dimension x(n),cls(kn),ti(kn-1) 
+      dimension x(n),cls(kn),ti(kn)
       dimension ak(kn),p(kn),c(kn) 
       common/range/t0,t1,t2,t3 
       ti(1)=t2 
-      ti(2)=t3 
+cc      ti(2)=t3 
+      if(kn.ge.2) ti(2)=t3
 cc      kn=(n-1)/3 
       do 10 k=1,kn 
       ak(k)=x(3*k-1) 
