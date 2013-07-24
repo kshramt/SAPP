@@ -5,7 +5,8 @@
   Compute the maximum likelihood estimates of intensity rates of either exponential polynomial or exponential Fourier series of non-stationary Poisson process models.
 }
 \usage{
-eptren(data, mag=NULL, threshold=0.0, nparam, nsub, cycle=0, tmpfile=NULL, nlmax=1000, plot=TRUE)
+  eptren(data, mag=NULL, threshold=0.0, nparam, nsub, cycle=0, tmpfile=NULL,
+         nlmax=1000, plot=TRUE)
 }
 \arguments{
   \item{data}{point process data.}

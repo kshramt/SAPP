@@ -91,7 +91,8 @@ cc      common /rd1fn1/delta,rxz(20),sxz(4001,20),ns
 cc      dimension rxz(20),sxz(4001,20)
       common /rd1fn1/delta
       dimension rxz(nb),sxz(ni+1,nb)
-      dimension xx(1)
+cx      dimension xx(1)
+      dimension xx(nn)
       ns=ni
       do 10 j=1,nb
       rxz(j)=0.0
@@ -130,9 +131,10 @@ c
 cc      common /rd1fn1/delta,rxz(20),sxz(4001,20),ns
       common /rd1fn1/delta
       common     / ddd /  r , ff , aic , sd
-cc      dimension g(1),gs(30),a(1)
       dimension rxz(nmax),sxz(ns+1,nmax)
-      dimension g(1),gs(n),a(1)
+cc      dimension g(1),gs(30),a(1)
+cx      dimension g(1),gs(n),a(1)
+      dimension g(n),gs(n),a(n)
       ifg=0
       fxx=0.0
       do 20 j=1,n
@@ -184,8 +186,10 @@ c
 cc      common /rd2fn2/delta,rxc(20),sxc(4001,20),rxs(20),sxs(4001,20),tr,
 cc     &               it,ns,nnd
       common /rd2fn2/delta,tr,it,nnd
-      dimension rxc(1),sxc(ni+1,nb*2-1),rxs(1),sxs(ni+1,nb*2-1)
-      dimension xx(1)
+cx      dimension rxc(1),sxc(ni+1,nb*2-1),rxs(1),sxs(ni+1,nb*2-1)
+cx      dimension xx(1)
+      dimension rxc(nb),sxc(ni+1,nb),rxs(nb),sxs(ni+1,nb)
+      dimension xx(nn)
       data pi/3.14159265358979d0/
       ns=ni
       nnd=nn
@@ -236,10 +240,11 @@ cc      common /rd2fn2/delta,rxc(20),sxc(4001,20),rxs(20),sxs(4001,20),tr,
 cc     &               it,ns,nnd
       common /rd2fn2/delta,tr,it,nnd
       common     / ddd /  r , ff , aic , sd
-cc      dimension g(20),a(1)
-cc      dimension gs(20),gc(20),gcp(20),gsp(20)
       dimension rxc(nmax),sxc(ns+1,nmax),rxs(nmax),sxs(ns+1,nmax)
-      dimension g(n),a(1)
+cc      dimension g(20),a(1)
+cx      dimension g(n),a(1)
+cc      dimension gs(20),gc(20),gcp(20),gsp(20)
+      dimension g(n),a(n)
       dimension gs(n/2),gc(n/2),gcp(n/2),gsp(n/2)
       ifg=0
       fxx=a(1)*nnd
@@ -745,7 +750,8 @@ c ------------------------------------------------------------
       subroutine fincal(n,x,aic,xa,t,nfunct)
       implicit real * 8 (a-h,o-z)
       common     / ddd /  r , xm , aicc , sd
-      dimension x(1),xa(1)
+cx      dimension x(1),xa(1)
+      dimension x(n),xa(n)
       if(nfunct.eq.2) go to 20
       xa(1)=x(1)-log(t)
       if(n.eq.1) go to 40
@@ -766,8 +772,11 @@ cc      subroutine output( xx,amg,nn,t,xa,aic,n,ipl,nfunct,cycle )
      & imin,xval,fval,nmax,np )
       implicit real * 8 (a-h,o-z)
 cc      dimension xx(1),amg(1),aic(1),xa(100,20)
-      dimension xx(1),amg(1),aic(1),xa(nmax,n)
-      dimension xval(1),fval(1)
+cx      dimension xx(1),amg(1),aic(1),xa(nmax,n)
+cx      dimension xval(1),fval(1)
+      dimension xx(nn),amg(nn),aic(n),xa(nmax,n)
+      dimension xval(np),fval(np)
+
       acmin=1.d10
       do 10 i=1,n
 cc      write(6,1) aic(i)
@@ -803,7 +812,8 @@ cc      write(6,3) iimin,(xa(i,imin),i=1,iimin)
       return
       end
       subroutine trenfn(xa,x,y,n)
-      real * 8 xa(1),yy,x,y
+cx      real * 8 xa(1),yy,x,y
+      real * 8 xa(n),yy,x,y
       yy=xa(1)
       if(n.eq.1) go to 20
       do 10 i=2,n
@@ -814,7 +824,8 @@ cc      write(6,3) iimin,(xa(i,imin),i=1,iimin)
       return
       end
       subroutine cyclfn(xa,x,y,n)
-      real * 8 xa(1),yy,x,y,pi
+cx      real * 8 xa(1),yy,x,y,pi
+      real * 8 xa(n),yy,x,y,pi
       data pi/3.14159265358979d0/
       yy=xa(1)
       if(n.eq.1) go to 20
@@ -832,7 +843,8 @@ cc      subroutine printr(t,xa,n,nfunct)
 cc      real * 8 t,xa,xx,yy
 cc      dimension x(2000),y(2000),xa(1)
       implicit real * 8 (a-h,o-z)
-      dimension x(1),y(1),xa(1)
+cx      dimension x(1),y(1),xa(1)
+      dimension x(nn),y(nn),xa(nn)
       character*1 xo
       data xo/'o'/
 cc      nn=101

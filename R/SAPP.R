@@ -221,7 +221,7 @@ plot.pgraph <- function( zd,xmg,h,kn,xtau,y,xl,xx,ydev,ui,ncn,sui,xp,npoint,dlt,
 
 # r.pgPTnum
   par(ask=TRUE)
-  if( separate.graphics == TRUE ) X11()
+  if( separate.graphics == TRUE ) dev.new()
   par(mfrow=c(2,1))
   plot(x=xtau, y=y, type="l", ylab="Number of Events in [tau, tau+h]", xlab="tau = Time x (Total Number of Events) / (Time End)",xlim=c(0,nn))
   abline(h=seq(-3,3,1),lty=2, col=2)
@@ -229,7 +229,7 @@ plot.pgraph <- function( zd,xmg,h,kn,xtau,y,xl,xx,ydev,ui,ncn,sui,xp,npoint,dlt,
   plot(x=zd, y=xmg, type="h", ylab="Magnitude", xlab="Ordinary or Transformed Time",xlim=c(0,xmax))
 
 # r.pgSurviv
-  if( separate.graphics == TRUE ) X11()
+  if( separate.graphics == TRUE ) dev.new()
   par(mfrow=c(2,1))
   yy <- log10(c(nn1:1))
   plot(x=xl, y=yy, type="p", pch="+", cex=0.5, xlab="Interval Length",ylab="Cumulative Number", axes=F, main="Survivor Function")
@@ -254,7 +254,7 @@ plot.pgraph <- function( zd,xmg,h,kn,xtau,y,xl,xx,ydev,ui,ncn,sui,xp,npoint,dlt,
 
 # r.pgInterP
 # Inter1
-  if( separate.graphics == TRUE ) X11()
+  if( separate.graphics == TRUE ) dev.new()
   par(mfrow=c(2,1))
   xmax <- ui[1]
   ymax <- ncn[1]
@@ -274,7 +274,7 @@ plot.pgraph <- function( zd,xmg,h,kn,xtau,y,xl,xx,ydev,ui,ncn,sui,xp,npoint,dlt,
   plot(data, type="p", pch="+", xlab="U(i)", ylab="U(i+1)", xaxs="i", yaxs="i", main="Successive Pair of Intervals")
 
 # r.pgPalm
-  if( separate.graphics == TRUE ) X11()
+  if( separate.graphics == TRUE ) dev.new()
   par(mfrow=c(1,1))
   band <- xp
   data <- matrix(, ncol=2, nrow=npoint)
@@ -286,7 +286,7 @@ plot.pgraph <- function( zd,xmg,h,kn,xtau,y,xl,xx,ydev,ui,ncn,sui,xp,npoint,dlt,
   abline(h=mean(band))
 
 # r.pgVTC
-  if( separate.graphics == TRUE ) X11()
+  if( separate.graphics == TRUE ) dev.new()
   plot(x=xtime, y=sigma, type="p", pch="+", cex=0.5, xlab="Time", ylab="Var{N(0,Time)}", 
        ylim=range(pretty(c(sigma,yvar))),main="Variance-Time Curve")
   points(xtime, yvar[1,], type="l", col=2)
@@ -435,6 +435,9 @@ linsim <- function( data,interval,c,d,ax,ay,at,ptmax )
 	as.double(ptmax),
 	as.integer(kmax))
 
+  ier <- z[[5L]]
+  if( ier != 0 ) 
+    stop(sprintf(" warning: simulated data length is greater than 2*(original data length)\n"))
   err <- z[[4L]]
   if( err != 0. )
     stop(sprintf(" warning: is ptmax correct?  prob=%f\n",err))
@@ -698,6 +701,9 @@ simbvh <- function( interval,axx=NULL,axy=NULL,axz=NULL,ayx=NULL,ayy=NULL,ayz=NU
 	as.integer(nnmax),
 	as.integer(mmmax) )
 
+  ier <- z[[6L]]
+  if( ier != 0 ) 
+    stop(sprintf(" warning: simulated data length is greater than 10000\n"))
   err <- z[[5L]]
   if( err != 0. )
     cat(sprintf(" warning: are ptxmax & ptymax correct? prob=%f\n",err))

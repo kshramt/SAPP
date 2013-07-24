@@ -1,13 +1,20 @@
 
-             *******************************
+             ****************************
 
                 Changes in R Package SAPP
 
-             *******************************
+             ****************************
+
+
+  SAPP_1.0.3
+ ===========
+ * Set the correct dimension for array bounds (1) and (*) in eptrenf.f, etasimf.f, comsub.f, linsimf.f, aftpoi.f, pgraphf.f and simbvhf.f.
+
+ * Add an argument "ier" to the subroutine linsimf and simbvhf.
 
 
   SAPP_1.0.2
- ============
+ ===========
  * Fixed a bug in momori().
    In subroutine sizes, the size of the array "ti" in the declaration is unsuitable.
 
@@ -23,7 +30,7 @@
 
 
   SAPP_1.0.1
- ============
+ ===========
  * Delete an extra line with the unterminated string at the end of the file SAPP/data/res2003JUL26.R.
 
   (Reported by William Dunlap and Duncan Murdoch)
@@ -31,5 +38,5 @@
  * Fixed a bug in eptren(). 
    In subroutine eptrenf, declare the dimension of array "amg".
 
- * Add the argument "kmax" to the subroutines linlinf, dav, linear, davidn, funct (linlinf.f) and comfac (comsub.f).
+ * Add an argument "kmax" to the subroutines linlinf, dav, linear, davidn, funct (linlinf.f) and comfac (comsub.f).
    In those subroutines, declare the dimension of array "lf" as the dynamic array lf(kmax,kmax).

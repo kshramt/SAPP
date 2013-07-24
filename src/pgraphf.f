@@ -122,7 +122,8 @@ cc      dimension xnm(2000)
 cc      real*8 xmgmax
 cc      data xnm/2000*0.0/
       implicit real * 8 (a-h,o-z)
-      dimension z(1),x(2*nn),ix(2*nn),y(2*nn)
+cx      dimension z(1),x(2*nn),ix(2*nn),y(2*nn)
+      dimension z(nn),x(2*nn),ix(2*nn),y(2*nn)
       i=1
       j=1
       k=0
@@ -185,7 +186,8 @@ c     separated graph with lines of error bounds.
 c
 cc      dimension z(1),x(3000),y(3000),w(3000)
       implicit real * 8 (a-h,o-z)
-      dimension z(1),x(n+1),w(n-1)
+cx      dimension z(1),x(n+1),w(n-1)
+      dimension z(n),x(n+1),w(n-1)
       dimension xx(n-1,6)
       dimension xl(n-1)
       dimension ydev(n-1)
@@ -334,7 +336,8 @@ cc      subroutine palmpr(x,n,t,t1,n1)
       subroutine palmpr(x,n,t,t1,n1,xp,xx,dlt)
 cc      dimension x(1),xx(1000),p(4)
       implicit real * 8 (a-h,o-z)
-      dimension x(1),xx(n1+1),p(4)
+cx      dimension x(1),xx(n1+1),p(4)
+      dimension x(n),xx(n1+1),p(4)
       character*1 xl(101),xmi,xii,xtt,xst,bl
       dimension xp(4)
       data p/-2.57583,-1.95996,1.95996,2.57583/
@@ -538,8 +541,9 @@ cc      subroutine vtcprt(sigma,n,delta,nn,t,erres,errest)
       subroutine vtcprt(sigma,n,delta,nn,t,erres,errest,x,y)
       implicit real * 8 (a-h,o-z)
       character*1 xl(101),xmi,xii,xtt,xst,bl,xo
-      dimension sigma(1),erres(1),errest(1)
+cx      dimension sigma(1),erres(1),errest(1)
 cc      dimension x(2000),y(5)
+      dimension sigma(n),erres(n),errest(n)
       dimension x(n),y(5,n)
       data xmi,xii,xtt,xst,bl,xo/'-','|','|','*',' ','o'/
 cc      write(6,4)

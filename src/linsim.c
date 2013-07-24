@@ -2,17 +2,17 @@
 #include <Rdefines.h>
 #include "sapp.h"
 
-extern void F77_NAME(linsimf)(int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, int*, double*, int*, double*, int*, int*, double*);
+extern void F77_NAME(linsimf)(int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, int*, double*, int*, double*, int*, int*, double*, int*);
 
 SEXP linsim(SEXP kxx, SEXP kxy, SEXP kxz, SEXP t, SEXP c, SEXP d, SEXP ax, SEXP ay, SEXP at, SEXP yy, SEXP mm, SEXP ptmax, SEXP kmax)
 {
     double *d1,*d2,*d3,*d4,*d5,*d6,*d7,*d8,*d9,*d10;
-    int *i1,*i2,*i3,*i4,*i5,*i6,*i7;
+    int *i1,*i2,*i3,*i4,*i5,*i6,*i7,*i8;
 
-    SEXP ans = R_NilValue, xx = R_NilValue, ii1= R_NilValue, jj1= R_NilValue, err = R_NilValue;
+    SEXP ans = R_NilValue, xx = R_NilValue, ii1= R_NilValue, jj1= R_NilValue, err = R_NilValue, ier = R_NilValue;
 
     double *zxx, *zerr = NULL;
-    int      *ii, *jj = NULL;
+    int      *ii, *jj, *ierr = NULL;
 
     int mm2;
     int i;
@@ -33,28 +33,32 @@ SEXP linsim(SEXP kxx, SEXP kxy, SEXP kxz, SEXP t, SEXP c, SEXP d, SEXP ax, SEXP 
 
     mm2 = (*i4) * 2;
 
-    PROTECT(ans = allocVector(VECSXP, 4));
+    PROTECT(ans = allocVector(VECSXP, 5));
     SET_VECTOR_ELT(ans, 0, xx = allocVector(REALSXP, mm2));
     SET_VECTOR_ELT(ans, 1, ii1 = allocVector(INTSXP, 1));
     SET_VECTOR_ELT(ans, 2, jj1 = allocVector(INTSXP, 1));
     SET_VECTOR_ELT(ans, 3, err = allocVector(REALSXP, 1));
+    SET_VECTOR_ELT(ans, 4, ier = allocVector(INTSXP, 1));
 
     d9 = NUMERIC_POINTER(xx);
     i6 = INTEGER_POINTER(ii1);
     i7 = INTEGER_POINTER(jj1);
     d10 = NUMERIC_POINTER(err);
+    i8 = INTEGER_POINTER(ier);
 
-    F77_CALL(linsimf) (i1,i2,i3,d1,d2,d3,d4,d5,d6,d7,i4,d8,i5,d9,i6,i7,d10);
+    F77_CALL(linsimf) (i1,i2,i3,d1,d2,d3,d4,d5,d6,d7,i4,d8,i5,d9,i6,i7,d10,i8);
 
     zxx = REAL(xx);
     ii = INTEGER(ii1);
     jj = INTEGER(jj1);
     zerr = REAL(err);
+    ierr = INTEGER(ier);
 
     for(i=0; i<mm2; i++) zxx[i] = d9[i];
     *ii = *i6;
     *jj = *i7;
     *zerr = *d10;
+    *ierr = *i8;
 
     UNPROTECT(1);
 

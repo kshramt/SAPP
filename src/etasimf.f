@@ -127,7 +127,8 @@ c
 cc      subroutine fx(i,x,a,b,c,d,p,rfmg,xx,xm,xity)
       subroutine fx1(i,x,a,b,c,d,p,rfmg,xx,xm,xity)
       implicit real*8(a-h,o-z)
-      dimension xx(1),xm(1)
+cx      dimension xx(1),xm(1)
+      dimension xx(i),xm(i)
       xity=a
 ctren xity=a-x*0.2821d-6
       do 10 j=1,i

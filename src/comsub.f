@@ -60,7 +60,8 @@ c
 c     calculation of an upper bound of a response function
 c
       implicit real*8 (a-h,o-z)
-      dimension ax(1)
+cx      dimension ax(1)
+      dimension ax(kx)
       fmax=0.0
       if(kx.eq.0) go to 120
       do 100 i=1,1000
@@ -98,7 +99,8 @@ c     deterministic functions for an intensity of non-stationary
 c     poisson process such as a fourier series for cyclic component.
 c
       implicit real*8(a-h,o-z)
-      dimension axz(1)
+cx      dimension axz(1)
+      dimension axz(kxz)
       ptx=0.0
       do 10 i=1,kxz
       ptx=ptx+axz(i)*x**(i-1)

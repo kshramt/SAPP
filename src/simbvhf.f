@@ -1,6 +1,8 @@
 cc      program simbvh
       subroutine simbvhf(kxx,kxy,kxz,kyx,kyy,kyz,t,c,d,c2,d2,axx,axy,
-     & axz,ayx,ayy,ayz,ptxmax,ptymax,kmax,xx,yy,i1,j1,err,nnmax,mmmax)
+cx     & axz,ayx,ayy,ayz,ptxmax,ptymax,kmax,xx,yy,i1,j1,err,nnmax,mmmax)
+     & axz,ayx,ayy,ayz,ptxmax,ptymax,kmax,xx,yy,i1,j1,err,nnmax,mmmax,
+     & ier)
 c
       include 'sapp_f.h'
 c
@@ -51,7 +53,8 @@ c
       call simda(kxx,kxy,kxz,kyx,kyy,kyz,t,c,d,c2,d2,axx,axy,axz,ayx,ayy
      &           ,ayz,fxxmax,fxymax,fyxmax,fyymax,xx,yy,ei,ej,fi,fj,
 cc     &           ei2,ej2,fi2,fj2,kmax,ptxmax,ptymax,lf,i1,j1)
-     &           ei2,ej2,fi2,fj2,kmax,ptxmax,ptymax,lf,i1,j1,err)
+cx     &           ei2,ej2,fi2,fj2,kmax,ptxmax,ptymax,lf,i1,j1,err)
+     & ei2,ej2,fi2,fj2,kmax,ptxmax,ptymax,nnmax,mmmax,lf,i1,j1,err,ier)
 c
 cc      call output(xx,yy,i1,j1,t)
 c
@@ -61,13 +64,19 @@ c
      &                 ayx,ayy,ayz,fxxmax,fxymax,fyxmax,fyymax,xx,yy,
      &                 ei,ej,fi,fj,ei2,ej2,fi2,fj2,kmax,ptxmax,
 cc     &                 ptymax,lf,i1,j1)
-     &                 ptymax,lf,i1,j1,err)
+cx     &                 ptymax,lf,i1,j1,err)
+     &                 ptymax,nmax,mmax,lf,i1,j1,err,ier)
       implicit real*8(a-h,o-z)
-      dimension axx(1),axy(1),axz(1),xx(1),yy(1),ei(1),ej(1),fi(1),fj(1)
-      dimension ayx(1),ayy(1),ayz(1),ei2(1),ej2(1),fi2(1),fj2(1)
+cx      dimension axx(1),axy(1),axz(1),xx(1),yy(1),ei(1),ej(1),fi(1),fj(1)
+cx      dimension ayx(1),ayy(1),ayz(1),ei2(1),ej2(1),fi2(1),fj2(1)
+      dimension axx(kxx),axy(kxy),axz(kxz),xx(nmax),yy(mmax)
+      dimension ei(kmax),ej(kmax),fi(kmax),fj(kmax)
+      dimension ayx(kyx),ayy(kyy),ayz(kyz)
+      dimension ei2(kmax),ej2(kmax),fi2(kmax),fj2(kmax)
       dimension lf(kmax,kmax)
       real*4r
 c---
+      ier=0
       err=0.0
       ir=584287
 c---
@@ -125,6 +134,12 @@ cc      call unifor(r)
 c----------------------
       if(probx.le.r)go to 70
       i=i+1
+c--------------------
+      if(i.gt.nmax) then
+         ier=-1
+         return
+      end if
+c--------------------
       xx(i)=x
       do 10 k=1,kmax
       ei(k)=fi(k)
@@ -134,6 +149,12 @@ c----------------------
       go to 20
    70 if(prob.le.r) go to 30
       j=j+1
+c--------------------
+      if(j.gt.mmax) then
+         ier=-2
+         return
+      end if
+c--------------------
       yy(j)=x
       do 90 k=1,kmax
       ej(k)=fj(k)
@@ -155,9 +176,12 @@ c     decreasing process except jumps, which is always greater than
 c     the intensity process in subroutine fx.
 c
       implicit real * 8 (a-h,o-z)
-      dimension axx(1),axy(1),ei(1),ej(1),fi(1),fj(1)
-      dimension ayx(1),ayy(1),ei2(1),ej2(1),fi2(1),fj2(1)
-      dimension xx(1),yy(1)
+cx      dimension axx(1),axy(1),ei(1),ej(1),fi(1),fj(1)
+cx      dimension ayx(1),ayy(1),ei2(1),ej2(1),fi2(1),fj2(1)
+cx      dimension xx(1),yy(1)
+      dimension axx(kxx),axy(kxy),ei(1),ej(1),fi(1),fj(1)
+      dimension ayx(kyx),ayy(kyy),ei2(1),ej2(1),fi2(1),fj2(1)
+      dimension xx(i),yy(j)
       ixf=1
       iyf=1
       ixf2=1
@@ -231,10 +255,15 @@ c     intensity processes
 c
       implicit real * 8 (a-h,o-z)
 cc      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1),lf(51,51)
-      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1)
+cx      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1)
       dimension lf(kmax,kmax)
-      dimension ayx(1),ayy(1),ayz(1),ei2(1),ej2(1),fi2(1),fj2(1)
-      dimension xx(1),yy(1)
+cx      dimension ayx(1),ayy(1),ayz(1),ei2(1),ej2(1),fi2(1),fj2(1)
+cx      dimension xx(1),yy(1)
+      dimension axx(kxx),axy(kxy),axz(kxz)
+      dimension ei(kmax),ej(kmax),fi(kmax),fj(kmax)
+      dimension ayx(kyx),ayy(kyy),ayz(kyz)
+      dimension ei2(kmax),ej2(kmax),fi2(kmax),fj2(kmax)
+      dimension xx(i),yy(j)
 c
 cc      dxxi=x-xx(i)
       dxxi=x

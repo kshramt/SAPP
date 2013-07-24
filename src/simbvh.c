@@ -2,17 +2,17 @@
 #include <Rdefines.h>
 #include "sapp.h"
 
-extern void F77_NAME(simbvhf)( int*, int*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*, double*, double*, int*, int*, double*, int*, int*);
+extern void F77_NAME(simbvhf)( int*, int*, int*, int*, int*, int*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, double*, int*, double*, double*, int*, int*, double*, int*, int*, int*);
 
 SEXP simbvh(SEXP kxx, SEXP kxy, SEXP kxz, SEXP kyx, SEXP kyy, SEXP kyz, SEXP t, SEXP coxx, SEXP coxy, SEXP coyx, SEXP coyy, SEXP axx, SEXP axy, SEXP axz, SEXP ayx, SEXP ayy, SEXP ayz, SEXP ptxmax, SEXP ptymax, SEXP kmax, SEXP nnmax, SEXP mmmax)
 {
     double *d1,*d2,*d3,*d4,*d5,*d6,*d7,*d8,*d9,*d10,*d11,*d12,*d13,*d14,*d15,*d16;
-    int *i1,*i2,*i3,*i4,*i5,*i6,*i7,*i8,*i9,*i10,*i11;
+    int *i1,*i2,*i3,*i4,*i5,*i6,*i7,*i8,*i9,*i10,*i11,*i12;
 
-    SEXP ans = R_NilValue, x = R_NilValue, y = R_NilValue, ii1 = R_NilValue, jj1 = R_NilValue, err = R_NilValue;
+    SEXP ans = R_NilValue, x = R_NilValue, y = R_NilValue, ii1 = R_NilValue, jj1 = R_NilValue, err = R_NilValue, ier = R_NilValue;
 
     double *xx, *yy, *zerr = NULL;
-    int     *ii, *jj = NULL;
+    int     *ii, *jj, *ierr = NULL;
     int nnn, mmm;
     int i;
 
@@ -41,32 +41,36 @@ SEXP simbvh(SEXP kxx, SEXP kxy, SEXP kxz, SEXP kyx, SEXP kyy, SEXP kyz, SEXP t, 
 
     nnn = *i10;
     mmm = *i11;
-    PROTECT(ans = allocVector(VECSXP, 5));
+    PROTECT(ans = allocVector(VECSXP, 6));
     SET_VECTOR_ELT(ans, 0, x = allocVector(REALSXP, nnn));
     SET_VECTOR_ELT(ans, 1, y = allocVector(REALSXP, mmm));
     SET_VECTOR_ELT(ans, 2, ii1 = allocVector(INTSXP, 1));
     SET_VECTOR_ELT(ans, 3, jj1 = allocVector(INTSXP, 1));
     SET_VECTOR_ELT(ans, 4, err = allocVector(REALSXP, 1));
+    SET_VECTOR_ELT(ans, 5, ier = allocVector(INTSXP, 1));
 
     d14 = NUMERIC_POINTER(x);
     d15 = NUMERIC_POINTER(y);
     i8 = INTEGER_POINTER(ii1);
     i9 = INTEGER_POINTER(jj1);
     d16 = NUMERIC_POINTER(err);
+    i12 = INTEGER_POINTER(ier);
 
-    F77_CALL(simbvhf) (i1,i2,i3,i4,i5,i6,d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,i7,d14,d15,i8,i9,d16,i10,i11);
+    F77_CALL(simbvhf) (i1,i2,i3,i4,i5,i6,d1,d2,d3,d4,d5,d6,d7,d8,d9,d10,d11,d12,d13,i7,d14,d15,i8,i9,d16,i10,i11,i12);
 
     xx = REAL(x);
     yy = REAL(y);
     ii = INTEGER(ii1);
     jj = INTEGER(jj1);
     zerr = REAL(err);
+    ierr = INTEGER(ier);
 
     for(i=0; i<nnn; i++) xx[i] = d14[i];
     for(i=0; i<mmm; i++) yy[i] = d15[i];
     *ii = *i8;
     *jj = *i9;
     *zerr = *d16;
+    *ierr = *i12;
 
     UNPROTECT(1);
 

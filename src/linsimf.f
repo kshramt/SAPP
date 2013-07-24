@@ -1,6 +1,7 @@
 cc      program linsim
       subroutine linsimf(kxx,kxy,kxz,t,c,d,axx,axy,axz,yy,mm,ptxmax,
-     & kmax,xx,i1,j1,err)
+cx     & kmax,xx,i1,j1,err)
+     & kmax,xx,i1,j1,err,ier)
 c
       include 'sapp_f.h'
 c
@@ -54,7 +55,8 @@ c
 c
       call simxx(kxx,kxy,kxz,t,c,d,axx,axy,axz,fxxmax,fxymax,
 cc     &           xx,yy,ei,ej,fi,fj,kmax,ptxmax,lf,i1,j1)
-     &           xx,yy,kmax,ptxmax,i1,j1,err)
+cx     &           xx,yy,kmax,ptxmax,i1,j1,err)
+     &           xx,yy,mm,kmax,ptxmax,i1,j1,err,ier)
 c
 cc      call output(xx,yy,i1,j1,t)
 c
@@ -62,15 +64,21 @@ c
       end
       subroutine simxx(kxx,kxy,kxz,t,c,d,axx,axy,axz,fxxmax,fxymax,
 cc     &                 xx,yy,ei,ej,fi,fj,kmax,ptxmax,lf,i1,j1)
-     &                 xx,yy,kmax,ptxmax,i1,j1,err)
+cx     &                 xx,yy,kmax,ptxmax,i1,j1,err)
+     &                 xx,yy,mm,kmax,ptxmax,i1,j1,err,ier)
+
       implicit real*8(a-h,o-z)
 cc      dimension axx(1),axy(1),axz(1),xx(1),yy(1),ei(1),ej(1),fi(1),fj(1)
-      dimension axx(1),axy(1),axz(1),xx(1),yy(1)
+cx      dimension axx(1),axy(1),axz(1),xx(1),yy(1)
+      dimension axx(kxx),axy(kxy),axz(kxz),xx(2*mm),yy(mm+1)
       dimension ei(kmax),ej(kmax),fi(kmax),fj(kmax)
 cc      dimension lf(51,51)
       dimension lf(kmax,kmax)
       real*4r
 c
+c----------
+      ier=0
+c----------
       err=0.0
       ir=584287
 c
@@ -118,6 +126,12 @@ c-----------------------------------------------------------------
       do 120 k=1,kxy
   120 ej(k)=fj(k)
       j=j+1
+c--------------------
+      if(j.gt.mm) then
+         ier=-1
+         return
+      end if
+c--------------------
       uity=uity+fxymax
       go to 130
 c
@@ -144,6 +158,12 @@ c-----------------------
       ij=ij+1
       if(probx.le.r)go to 30
       i=i+1
+c--------------------
+      if(i.gt.2*mm) then
+         ier=-2
+         return
+      end if
+c--------------------
       xx(i)=x
       do 10 k=1,kxx
       ei(k)=fi(k)
@@ -165,8 +185,10 @@ c
       implicit real * 8 (a-h,o-z)
 cc      dimension bxx(100),bxy(100)
       dimension bxx(kxx),bxy(kxy)
-      dimension axx(1),axy(1),ei(1),ej(1),fi(1),fj(1)
-      dimension xx(1),yy(1)
+cx      dimension axx(1),axy(1),ei(1),ej(1),fi(1),fj(1)
+cx      dimension xx(1),yy(1)
+      dimension axx(kxx),axy(kxy),ei(1),ej(1),fi(1),fj(1)
+      dimension xx(i),yy(j)
       ixf=1
       iyf=1
       cxp=0.0
@@ -207,9 +229,12 @@ c     intensity processes
 c
       implicit real * 8 (a-h,o-z)
 cc      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1),lf(51,51)
-      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1)
+cx      dimension axx(1),axy(1),axz(1),ei(1),ej(1),fi(1),fj(1)
+      dimension axx(kxx),axy(kxy),axz(kxz)
+      dimension ei(kmax),ej(kmax),fi(kmax),fj(kmax)
       dimension lf(kmax,kmax)
-      dimension xx(1),yy(1)
+cx      dimension xx(1),yy(1)
+      dimension xx(i),yy(j)
       if(i.eq.0) go to 30
       dxxi=x-xx(i)
       ecdxxi=0.0d00

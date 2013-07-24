@@ -217,7 +217,8 @@ c
       integer  return,sub 
 cc      dimension  x(1) , h(1) , x1(50) 
 cc      dimension  g(50)
-      dimension  x(1) , h(1) , x1(k)
+cx      dimension  x(1) , h(1) , x1(k)
+      dimension  x(k) , h(k) , x1(k)
       dimension  g(k)
       dimension  xx(nn) 
 c
