@@ -6,6 +6,11 @@
              ****************************
 
 
+  SAPP_1.0.4
+ ===========
+* Corrected errors in inst/doc/index.html according to the error message of the W3C Markup Validator service.
+
+
   SAPP_1.0.3
  ===========
  * Set the correct dimension for array bounds (1) and (*) in eptrenf.f, etasimf.f, comsub.f, linsimf.f, aftpoi.f, pgraphf.f and simbvhf.f.
