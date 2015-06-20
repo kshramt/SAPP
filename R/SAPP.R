@@ -990,7 +990,7 @@ etasap <- function( time, mag, threshold=0.0, reference=0.0, parami, zts=0.0, ts
 #  }
 
   nfunct <- 9
-  if( approx == 0 ) nfunct <- 2
+  if( approx == 0 ) nfunct <- 4
   nlm <- nlmax
   if( is.null(tmpfile) )  nlm <- 0
 
