@@ -1,11 +1,11 @@
 \name{momori}
 \alias{momori}
-\title{Maximum Likelihood Estimates of Parameters in The Omori-Utsu (modified Omori) Formula}
+\title{Maximum Likelihood Estimates of Parameters in the Omori-Utsu (Modified Omori) Formula}
 \description{
   Compute the maximum likelihood estimates (MLEs) of parameters in the Omori-Utsu (modified Omori) formula representing for the decay of occurrence rate of aftershocks with time.
 }
 \usage{
-  momori(data,mag=NULL,threshold=0.0,tstart,tend,parami,tmpfile=NULL, nlmax=1000)
+momori(data,mag=NULL,threshold=0.0,tstart,tend,parami,tmpfile=NULL, nlmax=1000)
 }
 \arguments{
   \item{data}{point process data.}
@@ -45,15 +45,15 @@
   \item{plist}{list of parameters \eqn{t_i}, \eqn{K}, \eqn{c}, \eqn{p} and \eqn{cls}.}
 }
 \references{
-  Y.Ogata (2006)
+  Ogata, Y. (2006)
   \emph{Computer Science Monographs, No.33, Statistical Analysis of Seismicity - updated version (SASeies2006).}
   The Institute of Statistical Mathematics.
 }
 \examples{
-  data(main2003JUL26)  # The aftershock data of 26th July 2003 earthquake of M6.2 
-  x <- main2003JUL26
-  momori(x$time, x$magnitude, 2.5, 0.01, 18.68,
-         c(0,0.96021E+02,0.58563E-01,0.96611E+00))
+data(main2003JUL26)  # The aftershock data of 26th July 2003 earthquake of M6.2 
+x <- main2003JUL26
+momori(x$time, x$magnitude, 2.5, 0.01, 18.68,
+       c(0,0.96021E+02,0.58563E-01,0.96611E+00))
 }
 
 \keyword{spatial}

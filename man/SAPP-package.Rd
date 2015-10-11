@@ -17,11 +17,11 @@ For overview of point process models,  see \url{../doc/SAPP-guide_e.pdf}.
 
 }
 \references{
-Y.Ogata, K.Katsura and J.Zhuang (2006) \emph{Computer Science Monographs, No.32,
+Ogata, Y., Katsura, K. and Zhuang, J. (2006) \emph{Computer Science Monographs, No.32,
 TIMSAC84: STATISTICAL ANALYSIS OF SERIES OF EVENTS (TIMSAC84-SASE) VERSION 2}.
 The Institute of Statistical Mathematics. \url{http://www.ism.ac.jp/editsec/csm/index.html}
 
-Y.Ogata (2006)
+Ogata, Y. (2006)
 \emph{Computer Science Monographs, No.33, Statistical Analysis of Seismicity - updated version (SASeies2006).}
 The Institute of Statistical Mathematics. \url{http://www.ism.ac.jp/editsec/csm/index.html}
 }

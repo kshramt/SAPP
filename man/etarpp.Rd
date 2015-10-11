@@ -1,16 +1,16 @@
 \name{etarpp}
 \alias{etarpp}
 \alias{etarpp2}
-\title{Residual Point Process of The ETAS Model}
+\title{Residual Point Process of the ETAS Model}
 \description{
   Compute the residual data using the ETAS model with MLEs.
 }
 \usage{
-  etarpp(time, mag, threshold=0.0, reference=0.0, parami,
-         zts=0.0, tstart, zte, ztend=NULL, plot=TRUE)
+etarpp(time, mag, threshold=0.0, reference=0.0, parami,
+       zts=0.0, tstart, zte, ztend=NULL, plot=TRUE)
 
-  etarpp2(etas, threshold=0.0, reference=0.0, parami,
-          zts=0.0, tstart, zte, ztend=NULL, plot=TRUE)
+etarpp2(etas, threshold=0.0, reference=0.0, parami,
+        zts=0.0, tstart, zte, ztend=NULL, plot=TRUE)
 }
 \arguments{
   \item{time}{the time measured from the main shock(t=0).}
@@ -42,21 +42,21 @@
                 (no., longitude, latitude, magnitude, time, depth and transformed time).}
 }
 \references{
-  Y.Ogata (2006)
+  Ogata, Y. (2006)
   \emph{Computer Science Monographs, No.33, Statistical Analysis of Seismicity - updated version (SASeies2006).}
   The Institute of Statistical Mathematics.
 }
 \examples{
-  data(main2003JUL26)  # The aftershock data of 26th July 2003 earthquake of M6.2
+data(main2003JUL26)  # The aftershock data of 26th July 2003 earthquake of M6.2
 
 ## output transformed times and cumulative numbers
-  x <- main2003JUL26
-  etarpp(x$time, x$magnitude, 2.5, 6.2,
-         c(0, 0.63348E+02, 0.38209E-01, 0.26423E+01, 0.10169E+01),, 0.01, 7, 18.68)
+x <- main2003JUL26
+etarpp(x$time, x$magnitude, 2.5, 6.2,
+       c(0, 0.63348E+02, 0.38209E-01, 0.26423E+01, 0.10169E+01),, 0.01, 7, 18.68)
 
 ## output a res-format dataset
-  etarpp2(main2003JUL26, 2.5, 6.2,
-         c(0, 0.63348E+02, 0.38209E-01, 0.26423E+01, 0.10169E+01),, 0.01, 7, 18.68)
+etarpp2(main2003JUL26, 2.5, 6.2,
+        c(0, 0.63348E+02, 0.38209E-01, 0.26423E+01, 0.10169E+01),, 0.01, 7, 18.68)
 
 }
 

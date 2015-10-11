@@ -6,6 +6,22 @@
              ****************************
 
 
+  SAPP_1.0.6
+ ===========
+* Fixed a bug in etasap().
+ The order of the elements in the output value "param" is wrong.
+
+  (Reported by Amato Kasahara)
+
+
+  SAPP_1.0.5
+ ===========
+* Fixed a bug in etasap().
+ If approx = 0, the minimization function is not called.
+
+  (Reported by Amato Kasahara)
+
+
   SAPP_1.0.4
  ===========
 * Corrected errors in inst/doc/index.html according to the error message of the W3C Markup Validator service.

@@ -7,8 +7,8 @@
 }
 
 \usage{
-  linlin(external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=NULL,
-         at=NULL, opt=0, tmpfile=NULL, nlmax=1000)
+linlin(external, self.excit, interval, c, d, ax=NULL, ay=NULL, ac=NULL,
+       at=NULL, opt=0, tmpfile=NULL, nlmax=1000)
 }
 
 \arguments{
@@ -66,22 +66,22 @@ Especially 0.0 is not suitable.
 }
 
 \references{
-  Y.Ogata, K.Katsura and J.Zhuang (2006) \emph{Computer Science Monographs, No.32,
+  Ogata, Y., Katsura, K. and Zhuang, J. (2006) \emph{Computer Science Monographs, No.32,
   TIMSAC84: STATISTICAL ANALYSIS OF SERIES OF EVENTS (TIMSAC84-SASE) VERSION 2}.
   The Institute of Statistical Mathematics.
 
-  Y.Ogata and H.Akaike (1982) \emph{On linear intensity models for mixed doubly stochastic poisson and self-exciting point processes}.
+  Ogata, Y. and Akaike, H. (1982) \emph{On linear intensity models for mixed doubly stochastic Poisson and self-exciting point processes}.
   J. royal statist. soc. b, vol. 44, pp. 102-107.
 
-  Y.Ogata, H.Akaike and K.Katsura (1982) \emph{The application of linear intensity models to the investigation of causal relations between a point process and another stochastic process}.
+  Ogata, Y., Akaike, H. and Katsura, K. (1982) \emph{The application of linear intensity models to the investigation of causal relations between a point process and another stochastic process}.
   Ann. inst. statist. math., vol. 34. pp. 373-387.
 }
 
 \examples{
-  data(PProcess)  # point process data 
-  data(SelfExcit) # self-exciting point process data
-  linlin( PProcess[1:69], SelfExcit, 20000, 0.13, 0.026,
-          c(0.035,-0.0048), c(0.0,0.00017),, c(0.007,-.00000029) )
+data(PProcess)  # point process data 
+data(SelfExcit) # self-exciting point process data
+linlin(PProcess[1:69], SelfExcit, 20000, 0.13, 0.026,
+       c(0.035,-0.0048), c(0.0,0.00017),, c(0.007,-.00000029))
 }
 
 \keyword{spatial}

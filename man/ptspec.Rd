@@ -6,14 +6,14 @@
  in searching a cyclic component, for stationary Poisson Process.
 }
 \usage{
-  ptspec( data, nfre, prdmin, prd, nsmooth=1, pprd, interval, plot=TRUE )
+ptspec( data, nfre, prdmin, prd, nsmooth=1, pprd, interval, plot=TRUE )
 }
 \arguments{
   \item{data}{data of events.}
   \item{nfre}{number of sampling frequencies of spectra.}
   \item{prdmin}{the minimum periodicity of the sampling.}
   \item{prd}{a periodicity for calculating the Rayleigh probability.}
-  \item{nsmooth}{number for smoothing of periodgram.}
+  \item{nsmooth}{number for smoothing of periodogram.}
   \item{pprd}{particular periodicities to be investigated among others.}
   \item{interval}{length of observed time interval of events.}
   \item{plot}{logical. If TRUE (default) the periodogram is plotted.}
@@ -27,16 +27,16 @@
   \item{phase}{phase.}
 }
 \references{
-  Y.Ogata, K.Katsura and J.Zhuang (2006) \emph{Computer Science Monographs, No.32,
+  Ogata, Y., Katsura, K. and Zhuang, J. (2006) \emph{Computer Science Monographs, No.32,
   TIMSAC84: STATISTICAL ANALYSIS OF SERIES OF EVENTS (TIMSAC84-SASE) VERSION 2}.
   The Institute of Statistical Mathematics.
 }
 \examples{
-  data(Brastings)  # The Occurrence Times Data of 627 Brastings
-  ptspec( Brastings, 1000, 0.5, 1.0,, c(2.0, 1.0, 0.5), 4600 )
+data(Brastings)  # The Occurrence Times Data of 627 Blastings
+ptspec(Brastings, 1000, 0.5, 1.0,, c(2.0, 1.0, 0.5), 4600)
 
-  data(PoissonData)  # to see the contrasting difference
-  ptspec( PoissonData, 1000, 0.5, 1.0,, c(2.0, 1.0, 0.5), 5000 )
-
+data(PoissonData)  # to see the contrasting difference
+ptspec(PoissonData, 1000, 0.5, 1.0,, c(2.0, 1.0, 0.5), 5000)
 }
+
 \keyword{spatial}

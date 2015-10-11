@@ -1,12 +1,12 @@
 \name{etasap}
 \alias{etasap}
-\title{Maximum Likelihood Estimates of The ETAS Model}
+\title{Maximum Likelihood Estimates of the ETAS Model}
 \description{
   Compute the maximum likelihood estimates of five parameters of ETAS model. This function consists of two (exact and approximated) versions of the calculation algorithm for the maximization of likelihood.
 }
 \usage{
-  etasap(time, mag, threshold=0.0, reference=0.0, parami,
-         zts=0.0, tstart, zte, approx=2, tmpfile=NULL, nlmax=1000, plot=TRUE)
+etasap(time, mag, threshold=0.0, reference=0.0, parami,
+       zts=0.0, tstart, zte, approx=2, tmpfile=NULL, nlmax=1000, plot=TRUE)
 }
 \arguments{
   \item{time}{the time measured from the main shock(t=0).}
@@ -52,15 +52,15 @@
   \item{aic2}{AIC/2.}
 }
 \references{
-  Y.Ogata (2006)
+  Ogata, Y. (2006)
   \emph{Computer Science Monographs, No.33, Statistical Analysis of Seismicity - updated version (SASeies2006).}
   The Institute of Statistical Mathematics.
 }
 \examples{
-  data(main2003JUL26)  # The aftershock data of 26th July 2003 earthquake of M6.2 
-  x <- main2003JUL26
-  etasap(x$time, x$magnitude, 2.5, 6.2, 
-         c(0, 0.63348E+02, 0.38209E-01, 0.26423E+01, 0.10169E+01),, 0.01, 18.68)
+data(main2003JUL26)  # The aftershock data of 26th July 2003 earthquake of M6.2 
+x <- main2003JUL26
+etasap(x$time, x$magnitude, 2.5, 6.2, 
+       c(0, 0.63348E+02, 0.38209E-01, 0.26423E+01, 0.10169E+01),, 0.01, 18.68)
 }
 
 \keyword{spatial}

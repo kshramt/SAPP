@@ -1009,17 +1009,17 @@ etasap <- function( time, mag, threshold=0.0, reference=0.0, parami, zts=0.0, ts
 	as.integer(approx),
 	as.integer(nlm) )
 
-  p <- z[[2L]]
-  pa <- list(B=p[1], K=p[2], c=p[3], p=p[4], cls=p[5])
+  x <- z[[2L]]
+  pa <- list(mu=x[1], K=x[2], c=x[3], alpha=x[4], p=x[5])
 
-  if( nlm ) {
+  if( nlm > 0 ) {
     nl <- z[[8L]]
     id <- z[[5L]][1:nl]
     g <- z[[3L]]
     ee <- z[[6L]][1:nl]
     x0 <- array(z[[7L]], c(np,nlmax))
     x1 <- x0[1:np,1:nl]
-    print.process9(id, p, g, ee, x1, tmpfile)
+    print.process9(id, x, g, ee, x1, tmpfile)
   }
 
   if( plot == TRUE ) {
@@ -1042,8 +1042,6 @@ etasap <- function( time, mag, threshold=0.0, reference=0.0, parami, zts=0.0, ts
     abline(h = bottom)
   }
 
-  p <- z[[2L]]
-  pa <- list(B=p[1], K=p[2], c=p[3], p=p[4], cls=p[5])
   etasap.out <- list( ngmle=z[[1L]], aic2=z[[4L]], param=pa )
   return( etasap.out )
 }

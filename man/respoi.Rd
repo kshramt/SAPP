@@ -1,14 +1,14 @@
 \name{respoi}
 \alias{respoi}
 \alias{respoi2}
-\title{The residual point process of the ETAS model}
+\title{The Residual Point Process of the ETAS Model}
 \description{
   Compute the residual of modified Omori Poisson process and display the cumulative curve and magnitude v.s. transformed time.
 }
 \usage{
-  respoi(time,mag,param,zts,tstart,zte,threshold=0.0,plot=TRUE)
+respoi(time,mag,param,zts,tstart,zte,threshold=0.0,plot=TRUE)
 
-  respoi2(etas,param,zts,tstart,zte,threshold=0.0,plot=TRUE)
+respoi2(etas,param,zts,tstart,zte,threshold=0.0,plot=TRUE)
 }
 \arguments{
   \item{time}{the time measured from the main shock(t=0).}
@@ -42,21 +42,21 @@
                 (no., longitude, latitude, magnitude, time, depth and trans.time) }
 }
 \references{
-  Y.Ogata (2006)
+  Ogata, Y. (2006)
   \emph{Computer Science Monographs, No.33, Statistical Analysis of Seismicity - updated version (SASeies2006).}
   The Institute of Statistical Mathematics.
 }
 \examples{
-  data(main2003JUL26)  # The aftershock data of 26th July 2003 earthquake of M6.2 
+data(main2003JUL26)  # The aftershock data of 26th July 2003 earthquake of M6.2 
 
 # output transformed times and cumulative numbers
-  x <- main2003JUL26
-  respoi(x$time, x$magnitude, c(0,0.96021E+02,0.58563E-01,0.96611E+00),
-         0.0, 0.01, 18.68, 2.5)
+x <- main2003JUL26
+respoi(x$time, x$magnitude, c(0,0.96021E+02,0.58563E-01,0.96611E+00),
+       0.0, 0.01, 18.68, 2.5)
 
 # output a res-format dataset
-  respoi2(main2003JUL26, c(0,0.96021E+02,0.58563E-01,0.96611E+00),
-          0.0, 0.01, 18.68, 2.5)
+respoi2(main2003JUL26, c(0,0.96021E+02,0.58563E-01,0.96611E+00),
+        0.0, 0.01, 18.68, 2.5)
 }
 
 \keyword{spatial}
